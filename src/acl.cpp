@@ -57,8 +57,8 @@ list *ACLLog;       /* Our security log, the user is able to inspect that
 
 struct ACLCategoryItem {
     const char *name;
-    uint64_t flag;
-} ACLCommandCategories[] = {
+    const uint64_t flag;
+} const ACLCommandCategories[] = {
     {"keyspace", CMD_CATEGORY_KEYSPACE},
     {"read", CMD_CATEGORY_READ},
     {"write", CMD_CATEGORY_WRITE},
@@ -80,20 +80,18 @@ struct ACLCategoryItem {
     {"connection", CMD_CATEGORY_CONNECTION},
     {"transaction", CMD_CATEGORY_TRANSACTION},
     {"scripting", CMD_CATEGORY_SCRIPTING},
-    {"replication", CMD_CATEGORY_REPLICATION},
-    {NULL,0} /* Terminator. */
+    {"replication", CMD_CATEGORY_REPLICATION}
 };
 
 struct ACLUserFlag {
     const char *name;
-    uint64_t flag;
-} ACLUserFlags[] = {
+    const uint64_t flag;
+} const ACLUserFlags[] = {
     {"on", USER_FLAG_ENABLED},
     {"off", USER_FLAG_DISABLED},
     {"allkeys", USER_FLAG_ALLKEYS},
     {"allcommands", USER_FLAG_ALLCOMMANDS},
-    {"nopass", USER_FLAG_NOPASS},
-    {NULL,0} /* Terminator. */
+    {"nopass", USER_FLAG_NOPASS}
 };
 
 void ACLResetSubcommandsForCommand(user *u, unsigned long id);
@@ -207,9 +205,9 @@ int ACLStringHasSpaces(const char *s, size_t len) {
 /* Given the category name the command returns the corresponding flag, or
  * zero if there is no match. */
 uint64_t ACLGetCommandCategoryFlagByName(const char *name) {
-    for (int j = 0; ACLCommandCategories[j].flag != 0; j++) {
-        if (!strcasecmp(name,ACLCommandCategories[j].name)) {
-            return ACLCommandCategories[j].flag;
+    for (const ACLCategoryItem& item : ACLCommandCategories) {
+        if (!strcasecmp(name,item.name)) {
+            return item.flag;
         }
     }
     return 0; /* No match. */
@@ -476,12 +474,12 @@ sds ACLDescribeUserCommandRules(user *u) {
      * single category will not perfectly match the set of commands into
      * it, so at the end we do a final pass adding/removing the single commands
      * needed to make the bitmap exactly match. */
-    for (int j = 0; ACLCommandCategories[j].flag != 0; j++) {
+    for (const auto& item : ACLCommandCategories) {
         unsigned long on, off;
-        ACLCountCategoryBitsForUser(u,&on,&off,ACLCommandCategories[j].name);
+        ACLCountCategoryBitsForUser(u,&on,&off,item.name);
         if ((additive && on > off) || (!additive && off > on)) {
             sds op = sdsnewlen(additive ? "+@" : "-@", 2);
-            op = sdscat(op,ACLCommandCategories[j].name);
+            op = sdscat(op,item.name);
             ACLSetUser(fakeuser,op,-1);
             rules = sdscatsds(rules,op);
             rules = sdscatlen(rules," ",1);
@@ -547,13 +545,13 @@ sds ACLDescribeUser(user *u) {
     sds res = sdsempty();
 
     /* Flags. */
-    for (int j = 0; ACLUserFlags[j].flag; j++) {
+    for (const ACLUserFlag& aclUserFlag : ACLUserFlags) {
         /* Skip the allcommands and allkeys flags because they'll be emitted
          * later as ~* and +@all. */
-        if (ACLUserFlags[j].flag == USER_FLAG_ALLKEYS ||
-            ACLUserFlags[j].flag == USER_FLAG_ALLCOMMANDS) continue;
-        if (u->flags & ACLUserFlags[j].flag) {
-            res = sdscat(res,ACLUserFlags[j].name);
+        if (aclUserFlag.flag == USER_FLAG_ALLKEYS ||
+            aclUserFlag.flag == USER_FLAG_ALLCOMMANDS) continue;
+        if (u->flags & aclUserFlag.flag) {
+            res = sdscat(res,aclUserFlag.name);
             res = sdscatlen(res," ",1);
         }
     }
@@ -1714,9 +1712,9 @@ void aclCommand(client *c) {
         addReplyBulkCString(c,"flags");
         void *deflen = addReplyDeferredLen(c);
         int numflags = 0;
-        for (int j = 0; ACLUserFlags[j].flag; j++) {
-            if (u->flags & ACLUserFlags[j].flag) {
-                addReplyBulkCString(c,ACLUserFlags[j].name);
+        for (const ACLUserFlag& acluserFlag : ACLUserFlags) {
+            if (u->flags & acluserFlag.flag) {
+                addReplyBulkCString(c, acluserFlag.name);
                 numflags++;
             }
         }
@@ -1806,10 +1804,9 @@ void aclCommand(client *c) {
         }
     } else if (!strcasecmp(sub,"cat") && c->argc == 2) {
         void *dl = addReplyDeferredLen(c);
-        int j;
-        for (j = 0; ACLCommandCategories[j].flag != 0; j++)
-            addReplyBulkCString(c,ACLCommandCategories[j].name);
-        setDeferredArrayLen(c,dl,j);
+        for (const ACLCategoryItem& item : ACLCommandCategories)
+            addReplyBulkCString(c,item.name);
+        setDeferredArrayLen(c,dl, sizeof(ACLCommandCategories));
     } else if (!strcasecmp(sub,"cat") && c->argc == 3) {
         uint64_t cflag = ACLGetCommandCategoryFlagByName(szFromObj(c->argv[2]));
         if (cflag == 0) {
@@ -1940,9 +1937,9 @@ NULL
 void addReplyCommandCategories(client *c, struct redisCommand *cmd) {
     int flagcount = 0;
     void *flaglen = addReplyDeferredLen(c);
-    for (int j = 0; ACLCommandCategories[j].flag != 0; j++) {
-        if (cmd->flags & ACLCommandCategories[j].flag) {
-            addReplyStatusFormat(c, "@%s", ACLCommandCategories[j].name);
+    for (const ACLCategoryItem& item : ACLCommandCategories) {
+        if (cmd->flags & item.flag) {
+            addReplyStatusFormat(c, "@%s", item.name);
             flagcount++;
         }
     }
