@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <atomic>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -44,7 +45,6 @@ extern "C" void zlibc_free(void *ptr) {
 #include <pthread.h>
 #include "config.h"
 #include "zmalloc.h"
-#include "atomicvar.h"
 
 #ifdef HAVE_MALLOC_SIZE
 #define PREFIX_SIZE (0)
@@ -83,20 +83,15 @@ static_assert((PREFIX_SIZE % 16) == 0, "Our prefix must be modulo 16-bytes or ou
 #define realloc(ptr,size,type) realloc(ptr,size)
 #endif
 
-#define update_zmalloc_stat_alloc(__n) do { \
-    size_t _n = (__n); \
-    if (_n&(sizeof(long)-1)) _n += sizeof(long)-(_n&(sizeof(long)-1)); \
-    atomicIncr(used_memory,__n); \
-} while(0)
+static std::atomic<size_t> used_memory = {};
 
-#define update_zmalloc_stat_free(__n) do { \
-    size_t _n = (__n); \
-    if (_n&(sizeof(long)-1)) _n += sizeof(long)-(_n&(sizeof(long)-1)); \
-    atomicDecr(used_memory,__n); \
-} while(0)
+static void  update_zmalloc_stat_alloc(const size_t __n) {
+    used_memory.fetch_add(__n);
+}
 
-static size_t used_memory = 0;
-pthread_mutex_t used_memory_mutex = PTHREAD_MUTEX_INITIALIZER;
+static void  update_zmalloc_stat_free(const size_t __n) {
+    used_memory.fetch_sub(__n);
+}
 
 static void zmalloc_default_oom(size_t size) {
     fprintf(stderr, "zmalloc: Out of memory trying to allocate %zu bytes\n",
@@ -232,8 +227,7 @@ char *zstrdup(const char *s) {
 }
 
 size_t zmalloc_used_memory(void) {
-    size_t um;
-    atomicGet(used_memory,um);
+    size_t um = used_memory.load();
     return um;
 }
 

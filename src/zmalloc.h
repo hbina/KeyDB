@@ -79,7 +79,7 @@
  * and the version used is our special version modified for Redis having
  * the ability to return per-allocation fragmentation hints. */
 #if defined(USE_JEMALLOC) && defined(JEMALLOC_FRAG_HINT)
-#define HAVE_DEFRAG
+#define HAVE_DEFRAG 1
 #endif
 
 #ifdef __cplusplus
