@@ -670,7 +670,7 @@ sds catCommandForAofAndActiveReplication(sds buf, struct redisCommand *cmd, robj
         buf = catAppendOnlyExpireAtCommand(buf,cmd,argv[1],argv[2]);
     } else if (cmd->proc == setCommand && argc > 3) {
         int i;
-        robj *exarg = NULL, *pxarg = NULL;
+        robj *exarg = NULL, *pxarg = nullptr;
         for (i = 3; i < argc; i ++) {
             if (!strcasecmp(szFromObj(argv[i]), "ex")) exarg = argv[i+1];
             if (!strcasecmp(szFromObj(argv[i]), "px")) pxarg = argv[i+1];
@@ -745,13 +745,13 @@ struct client *createAOFClient(void) {
 
     selectDb(c,0);
     c->id = CLIENT_ID_AOF; /* So modules can identify it's the AOF client. */
-    c->conn = NULL;
+    c->conn = nullptr;
     c->iel = IDX_EVENT_LOOP_MAIN;
-    c->name = NULL;
+    c->name = nullptr;
     c->querybuf = sdsempty();
     c->querybuf_peak = 0;
     c->argc = 0;
-    c->argv = NULL;
+    c->argv = nullptr;
     c->bufpos = 0;
     c->flags = 0;
     c->fPendingAsyncWrite = FALSE;
@@ -764,9 +764,9 @@ struct client *createAOFClient(void) {
     c->reply_bytes = 0;
     c->obuf_soft_limit_reached_time = 0;
     c->watched_keys = listCreate();
-    c->peerid = NULL;
+    c->peerid = nullptr;
     c->resp = 2;
-    c->puser = NULL;
+    c->puser = nullptr;
     listSetFreeMethod(c->reply,freeClientReplyValue);
     listSetDupMethod(c->reply,dupClientReplyValue);
     fastlock_init(&c->lock, "fake client");
@@ -946,7 +946,7 @@ int loadAppendOnlyFile(char *filename) {
         /* Clean up. Command code may have changed argv/argc so we use the
          * argv/argc of the client instead of the local variables. */
         freeFakeClientArgv(fakeClient);
-        fakeClient->cmd = NULL;
+        fakeClient->cmd = nullptr;
         if (g_pserver->aof_load_truncated) valid_up_to = ftello(fp);
         if (g_pserver->key_load_delay)
             usleep(g_pserver->key_load_delay);
@@ -1194,7 +1194,7 @@ int rewriteSortedSetObject(rio *r, robj *key, robj *o) {
  * The function returns 0 on error, non-zero on success. */
 static int rioWriteHashIteratorCursor(rio *r, hashTypeIterator *hi, int what) {
     if (hi->encoding == OBJ_ENCODING_ZIPLIST) {
-        unsigned char *vstr = NULL;
+        unsigned char *vstr = nullptr;
         unsigned int vlen = UINT_MAX;
         long long vll = LLONG_MAX;
 
@@ -1414,7 +1414,7 @@ ssize_t aofReadDiffFromParent(void) {
 }
 
 int rewriteAppendOnlyFileRio(rio *aof) {
-    dictIterator *di = NULL;
+    dictIterator *di = nullptr;
     dictEntry *de;
     size_t processed = 0;
     int j;
@@ -1491,7 +1491,7 @@ int rewriteAppendOnlyFileRio(rio *aof) {
             }
         }
         dictReleaseIterator(di);
-        di = NULL;
+        di = nullptr;
     }
     return C_OK;
 

@@ -97,7 +97,7 @@ static robj *lookupKey(redisDb *db, robj *key, int flags) {
         }
         return val;
     } else {
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -134,7 +134,7 @@ robj_roptr lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
         if (listLength(g_pserver->masters) == 0) {
             g_pserver->stat_keyspace_misses++;
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
-            return NULL;
+            return nullptr;
         }
 
         /* However if we are in the context of a replica, expireIfNeeded() will
@@ -156,7 +156,7 @@ robj_roptr lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
         {
             g_pserver->stat_keyspace_misses++;
             notifyKeyspaceEvent(NOTIFY_KEY_MISS, "keymiss", key, db->id);
-            return NULL;
+            return nullptr;
         }
     }
     val = lookupKey(db,key,flags);
@@ -338,7 +338,7 @@ void setKey(client *c, redisDb *db, robj *key, robj *val) {
 /* Return true if the specified key exists in the specified database.
  * LRU/LFU info is not updated in any way. */
 int dbExists(redisDb *db, robj *key) {
-    return dictFind(db->pdict,ptrFromObj(key)) != NULL;
+    return dictFind(db->pdict,ptrFromObj(key)) != nullptr;
 }
 
 /* Return a random key, in form of a Redis object.
@@ -355,7 +355,7 @@ robj *dbRandomKey(redisDb *db) {
         robj *keyobj;
 
         de = dictGetRandomKey(db->pdict);
-        if (de == NULL) return NULL;
+        if (de == NULL) return nullptr;
 
         key = (sds)dictGetKey(de);
         keyobj = createStringObject(key,sdslen(key));
@@ -755,7 +755,7 @@ void scanCallback(void *privdata, const dictEntry *de) {
     void **pd = (void**) privdata;
     list *keys = (list*)pd[0];
     robj *o = (robj*)pd[1];
-    robj *key, *val = NULL;
+    robj *key, *val = nullptr;
 
     if (o == NULL) {
         sds sdskey = (sds)dictGetKey(de);
@@ -815,8 +815,8 @@ void scanGenericCommand(client *c, robj_roptr o, unsigned long cursor) {
     list *keys = listCreate();
     listNode *node, *nextnode;
     long count = 10;
-    sds pat = NULL;
-    sds type = NULL;
+    sds pat = nullptr;
+    sds type = nullptr;
     int patlen = 0, use_pattern = 0;
     dict *ht;
 
@@ -872,7 +872,7 @@ void scanGenericCommand(client *c, robj_roptr o, unsigned long cursor) {
      * cursor to zero to signal the end of the iteration. */
 
     /* Handle the case of a hash table. */
-    ht = NULL;
+    ht = nullptr;
     if (o == nullptr) {
         ht = c->db->pdict;
     } else if (o->type == OBJ_SET && o->encoding == OBJ_ENCODING_HT) {
@@ -1626,7 +1626,7 @@ int *getKeysUsingCommandTable(struct redisCommand *cmd,robj **argv, int argc, in
 
     if (cmd->firstkey == 0) {
         *numkeys = 0;
-        return NULL;
+        return nullptr;
     }
 
     last = cmd->lastkey;
@@ -1648,7 +1648,7 @@ int *getKeysUsingCommandTable(struct redisCommand *cmd,robj **argv, int argc, in
             if (cmd->flags & CMD_MODULE || cmd->arity < 0) {
                 getKeysFreeResult(keys);
                 *numkeys = 0;
-                return NULL;
+                return nullptr;
             } else {
                 serverPanic("Redis built-in command declared keys positions not matching the arity requirements.");
             }
@@ -1698,7 +1698,7 @@ int *zunionInterGetKeys(struct redisCommand *cmd, robj **argv, int argc, int *nu
      * reply with syntax error. */
     if (num < 1 || num > (argc-3)) {
         *numkeys = 0;
-        return NULL;
+        return nullptr;
     }
 
     /* Keys in z{union,inter}store come from two places:
@@ -1729,7 +1729,7 @@ int *evalGetKeys(struct redisCommand *cmd, robj **argv, int argc, int *numkeys) 
      * reply with syntax error. */
     if (num <= 0 || num > (argc-3)) {
         *numkeys = 0;
-        return NULL;
+        return nullptr;
     }
 
     keys = getKeysTempBuffer;
@@ -1775,7 +1775,7 @@ int *sortGetKeys(struct redisCommand *cmd, robj **argv, int argc, int *numkeys) 
     };
 
     for (i = 2; i < argc; i++) {
-        for (j = 0; skiplist[j].name != NULL; j++) {
+        for (j = 0; skiplist[j].name != nullptr; j++) {
             if (!strcasecmp(szFromObj(argv[i]),skiplist[j].name)) {
                 i += skiplist[j].skip;
                 break;
@@ -1902,7 +1902,7 @@ int *memoryGetKeys(struct redisCommand *cmd, robj **argv, int argc, int *numkeys
         return keys;
     }
     *numkeys = 0;
-    return NULL;
+    return nullptr;
 }
 
 /* XREAD [BLOCK <milliseconds>] [COUNT <count>] [GROUP <groupname> <ttl>]
@@ -1938,7 +1938,7 @@ int *xreadGetKeys(struct redisCommand *cmd, robj **argv, int argc, int *numkeys)
     /* Syntax error. */
     if (streams_pos == -1 || num == 0 || num % 2 != 0) {
         *numkeys = 0;
-        return NULL;
+        return nullptr;
     }
     num /= 2; /* We have half the keys as there are arguments because
                  there are also the IDs, one per key. */

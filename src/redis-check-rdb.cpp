@@ -292,7 +292,7 @@ int redis_check_rdb(const char *rdbfilename, FILE *fp) {
         if (expiretime != -1 && expiretime < now)
             rdbstate.already_expired++;
         if (expiretime != -1) rdbstate.expires++;
-        rdbstate.key = NULL;
+        rdbstate.key = nullptr;
         decrRefCount(key);
         decrRefCount(val);
         rdbstate.key_type = -1;

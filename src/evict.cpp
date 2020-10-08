@@ -144,7 +144,7 @@ void evictionPoolAlloc(void) {
     ep = (evictionPoolEntry*)zmalloc(sizeof(*ep)*EVPOOL_SIZE, MALLOC_LOCAL);
     for (j = 0; j < EVPOOL_SIZE; j++) {
         ep[j].idle = 0;
-        ep[j].key = NULL;
+        ep[j].key = nullptr;
         ep[j].cached = sdsnewlen(NULL,EVPOOL_CACHED_SDS_SIZE);
         ep[j].dbid = 0;
     }
@@ -489,7 +489,7 @@ int freeMemoryIfNeeded(void) {
     while (mem_freed < mem_tofree) {
         int j, k, i;
         static unsigned int next_db = 0;
-        sds bestkey = NULL;
+        sds bestkey = nullptr;
         int bestdbid;
         redisDb *db;
 
@@ -536,7 +536,7 @@ int freeMemoryIfNeeded(void) {
                     /* Remove the entry from the pool. */
                     if (pool[k].key != pool[k].cached)
                         sdsfree(pool[k].key);
-                    pool[k].key = NULL;
+                    pool[k].key = nullptr;
                     pool[k].idle = 0;
 
                     /* If the key exists, is our pick. Otherwise it is

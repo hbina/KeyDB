@@ -151,7 +151,7 @@ void *bioProcessBackgroundJobs(void *arg) {
     if (type >= BIO_NUM_OPS) {
         serverLog(LL_WARNING,
             "Warning: bio thread started with wrong type %lu",type);
-        return NULL;
+        return nullptr;
     }
 
     switch (type) {

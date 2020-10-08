@@ -62,7 +62,7 @@ TPTR* activeDefragAlloc(TPTR *ptr) {
     if(!je_get_defrag_hint(ptr)) {
         g_pserver->stat_active_defrag_misses++;
         size = zmalloc_size(ptr);
-        return NULL;
+        return nullptr;
     }
     /* move this allocation to a new allocation.
      * make sure not to use the thread cache. so that we don't get back the same
@@ -94,7 +94,7 @@ sds activeDefragSds(sds sdsptr) {
         sdsptr = (char*)newptr + offset;
         return sdsptr;
     }
-    return NULL;
+    return nullptr;
 }
 
 /* Defrag helper for robj and/or string objects
@@ -103,9 +103,9 @@ sds activeDefragSds(sds sdsptr) {
  * when it returns a non-null value, the old pointer was already released
  * and should NOT be accessed. */
 robj *activeDefragStringOb(robj* ob, long *defragged) {
-    robj *ret = NULL;
+    robj *ret = nullptr;
     if (ob->getrefcount(std::memory_order_relaxed)!=1)
-        return NULL;
+        return nullptr;
 
     /* try to defrag robj (only if not an EMBSTR type (handled below). */
     if (ob->type!=OBJ_STRING || ob->encoding!=OBJ_ENCODING_EMBSTR) {
@@ -242,7 +242,7 @@ double *zslDefrag(zskiplist *zsl, double score, sds oldele, sds newele) {
         zslUpdateNode(zsl, x, newx, update);
         return &newx->score;
     }
-    return NULL;
+    return nullptr;
 }
 
 /* Defrag helpler for sorted set.
@@ -405,7 +405,7 @@ dictEntry* replaceSateliteDictKeyPtrAndOrDefragDictEntry(dict *d, sds oldkey, sd
             de->key = newkey;
         return de;
     }
-    return NULL;
+    return nullptr;
 }
 
 bool replaceSateliteOSetKeyPtr(expireset &set, sds oldkey, sds newkey) {
@@ -732,7 +732,7 @@ long defragRadixTree(rax **raxref, int defrag_data, raxDefragFunction *element_c
     defragRaxNode(&rax->head);
     raxSeek(&ri,"^",NULL,0);
     while (raxNext(&ri)) {
-        void *newdata = NULL;
+        void *newdata = nullptr;
         if (element_cb)
             newdata = element_cb(&ri, element_cb_data, &defragged);
         if (defrag_data && !newdata)
@@ -790,7 +790,7 @@ void* defragStreamConsumerGroup(raxIterator *ri, void *privdata, long *defragged
         *defragged += defragRadixTree(&cg->consumers, 0, defragStreamConsumer, cg);
     if (cg->pel)
         *defragged += defragRadixTree(&cg->pel, 0, NULL, NULL);
-    return NULL;
+    return nullptr;
 }
 
 long defragStream(redisDb *db, dictEntry *kde) {
@@ -981,7 +981,7 @@ int defragLaterItem(dictEntry *de, unsigned long *cursor, long long endtime) {
 }
 
 /* static variables serving defragLaterStep to continue scanning a key from were we stopped last time. */
-static sds defrag_later_current_key = NULL;
+static sds defrag_later_current_key = nullptr;
 static unsigned long defrag_later_cursor = 0;
 
 /* returns 0 if no more work needs to be been done, and 1 if time is up and more work is needed. */
@@ -1001,7 +1001,7 @@ int defragLaterStep(redisDb *db, long long endtime) {
                 serverAssert(defrag_later_current_key == head->value);
                 listDelNode(db->defrag_later, head);
                 defrag_later_cursor = 0;
-                defrag_later_current_key = NULL;
+                defrag_later_current_key = nullptr;
             }
 
             /* stop if we reached the last one. */
@@ -1087,7 +1087,7 @@ void computeDefragCycles() {
 void activeDefragCycle(void) {
     static int current_db = -1;
     static unsigned long cursor = 0;
-    static redisDb *db = NULL;
+    static redisDb *db = nullptr;
     static long long start_scan, start_stat;
     unsigned int iterations = 0;
     unsigned long long prev_defragged = g_pserver->stat_active_defrag_hits;
@@ -1102,11 +1102,11 @@ void activeDefragCycle(void) {
             g_pserver->active_defrag_running = 0;
             if (db)
                 listEmpty(db->defrag_later);
-            defrag_later_current_key = NULL;
+            defrag_later_current_key = nullptr;
             defrag_later_cursor = 0;
             current_db = -1;
             cursor = 0;
-            db = NULL;
+            db = nullptr;
         }
         return;
     }
@@ -1153,7 +1153,7 @@ void activeDefragCycle(void) {
                 start_scan = now;
                 current_db = -1;
                 cursor = 0;
-                db = NULL;
+                db = nullptr;
                 g_pserver->active_defrag_running = 0;
 
                 computeDefragCycles(); /* if another scan is needed, start it right away */

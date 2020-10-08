@@ -236,7 +236,7 @@ void freeReplicationBacklog(void) {
         serverAssert(c->flags & CLIENT_CLOSE_ASAP || FMasterHost(c));
     }
     zfree(g_pserver->repl_backlog);
-    g_pserver->repl_backlog = NULL;
+    g_pserver->repl_backlog = nullptr;
 }
 
 /* Add data to the replication backlog.
@@ -1372,7 +1372,7 @@ void sendBulkToSlave(connection *conn) {
         sdsrange(replica->replpreamble,nwritten,-1);
         if (sdslen(replica->replpreamble) == 0) {
             sdsfree(replica->replpreamble);
-            replica->replpreamble = NULL;
+            replica->replpreamble = nullptr;
             /* fall through sending data. */
         } else {
             return;
@@ -1465,11 +1465,11 @@ void rdbPipeWriteHandler(struct connection *conn) {
 void RdbPipeCleanup() {
     close(g_pserver->rdb_pipe_read);
     zfree(g_pserver->rdb_pipe_conns);
-    g_pserver->rdb_pipe_conns = NULL;
+    g_pserver->rdb_pipe_conns = nullptr;
     g_pserver->rdb_pipe_numconns = 0;
     g_pserver->rdb_pipe_numconns_writing = 0;
     zfree(g_pserver->rdb_pipe_buff);
-    g_pserver->rdb_pipe_buff = NULL;
+    g_pserver->rdb_pipe_buff = nullptr;
     g_pserver->rdb_pipe_bufflen = 0;
 
     /* Since we're avoiding to detect the child exited as long as the pipe is
@@ -1499,7 +1499,7 @@ void rdbPipeReadHandler(struct aeEventLoop *eventLoop, int fd, void *clientData,
                     continue;
                 client *slave = (client*)connGetPrivateData(conn);
                 freeClient(slave);
-                g_pserver->rdb_pipe_conns[i] = NULL;
+                g_pserver->rdb_pipe_conns[i] = nullptr;
             }
             killRDBChild();
             return;
@@ -1541,7 +1541,7 @@ void rdbPipeReadHandler(struct aeEventLoop *eventLoop, int fd, void *clientData,
                     serverLog(LL_WARNING,"Diskless rdb transfer, write error sending DB to replica: %s",
                         connGetLastError(conn));
                     freeClientAsync(slave);
-                    g_pserver->rdb_pipe_conns[i] = NULL;
+                    g_pserver->rdb_pipe_conns[i] = nullptr;
                     continue;
                 }
                 /* An error and still in connected state, is equivalent to EAGAIN */
@@ -1809,7 +1809,7 @@ void replicationCreateMasterClient(redisMaster *mi, connection *conn, int dbid) 
     mi->master->reploff = mi->master_initial_offset;
     mi->master->reploff_skipped = 0;
     mi->master->read_reploff = mi->master->reploff;
-    mi->master->puser = NULL; /* This client can do everything. */
+    mi->master->puser = nullptr; /* This client can do everything. */
     
     memcpy(mi->master->uuid, mi->master_uuid, UUID_BINARY_LEN);
     memset(mi->master_uuid, 0, UUID_BINARY_LEN); // make sure people don't use this temp storage buffer
@@ -1907,7 +1907,7 @@ void readSyncBulkPayload(connection *conn) {
     char buf[PROTO_IOBUF_LEN];
     ssize_t nread, readlen, nwritten;
     int use_diskless_load = useDisklessLoad();
-    redisDb *diskless_load_backup = NULL;
+    redisDb *diskless_load_backup = nullptr;
     rdbSaveInfo rsi = RDB_SAVE_INFO_INIT;
     int empty_db_flags = g_pserver->repl_slave_lazy_flush ? EMPTYDB_ASYNC :
                                                         EMPTYDB_NO_FLAGS;
@@ -2241,7 +2241,7 @@ void readSyncBulkPayload(connection *conn) {
         zfree(mi->repl_transfer_tmpfile);
         close(mi->repl_transfer_fd);
         mi->repl_transfer_fd = -1;
-        mi->repl_transfer_tmpfile = NULL;
+        mi->repl_transfer_tmpfile = nullptr;
     }
 
     /* Final setup of the connected slave <- master link */
@@ -2355,7 +2355,7 @@ char *sendSynchronousCommand(redisMaster *mi, int flags, connection *conn, ...)
         mi->repl_transfer_lastio = g_pserver->unixtime;
         return sdsnew(buf);
     }
-    return NULL;
+    return nullptr;
 }
 
 /* Try a partial resynchronization with the master if we are about to reconnect.
@@ -2459,7 +2459,7 @@ int slaveTryPartialResynchronization(redisMaster *mi, connection *conn, int read
     connSetReadHandler(conn, NULL);
 
     if (!strncmp(reply,"+FULLRESYNC",11)) {
-        char *replid = NULL, *offset = NULL;
+        char *replid = NULL, *offset = nullptr;
 
         /* FULL RESYNC, parse the reply in order to extract the run id
          * and the replication offset. */
@@ -2599,7 +2599,7 @@ void parseMasterCapa(redisMaster *mi, sds strcapa)
  * establish a connection with the master. */
 void syncWithMaster(connection *conn) {
     serverAssert(GlobalLocksAcquired());
-    char tmpfile[256] = {0}, *err = NULL;
+    char tmpfile[256] = {0}, *err = nullptr;
     int dfd = -1, maxtries = 5;
     int psync_result;
 
@@ -2931,12 +2931,12 @@ void syncWithMaster(connection *conn) {
 error:
     if (dfd != -1) close(dfd);
     connClose(conn);
-    mi->repl_transfer_s = NULL;
+    mi->repl_transfer_s = nullptr;
     if (mi->repl_transfer_fd != -1)
         close(mi->repl_transfer_fd);
     if (mi->repl_transfer_tmpfile)
         zfree(mi->repl_transfer_tmpfile);
-    mi->repl_transfer_tmpfile = NULL;
+    mi->repl_transfer_tmpfile = nullptr;
     mi->repl_transfer_fd = -1;
     mi->repl_state = REPL_STATE_CONNECT;
     return;
@@ -2956,7 +2956,7 @@ int connectWithMaster(redisMaster *mi) {
         serverLog(sev,"Unable to connect to MASTER: %s",
                 connGetLastError(mi->repl_transfer_s));
         connClose(mi->repl_transfer_s);
-        mi->repl_transfer_s = NULL;
+        mi->repl_transfer_s = nullptr;
         return C_ERR;
     }
 
@@ -2972,7 +2972,7 @@ int connectWithMaster(redisMaster *mi) {
  */
 void undoConnectWithMaster(redisMaster *mi) {
     connClose(mi->repl_transfer_s);
-    mi->repl_transfer_s = NULL;
+    mi->repl_transfer_s = nullptr;
 }
 
 /* Abort the async download of the bulk dataset while SYNC-ing with master.
@@ -2985,7 +2985,7 @@ void replicationAbortSyncTransfer(redisMaster *mi) {
         close(mi->repl_transfer_fd);
         unlink(mi->repl_transfer_tmpfile);
         zfree(mi->repl_transfer_tmpfile);
-        mi->repl_transfer_tmpfile = NULL;
+        mi->repl_transfer_tmpfile = nullptr;
         mi->repl_transfer_fd = -1;
     }
 }
@@ -3107,7 +3107,7 @@ void replicationUnsetMaster(redisMaster *mi) {
                               NULL);
 
     sdsfree(mi->masterhost);
-    mi->masterhost = NULL;
+    mi->masterhost = nullptr;
     if (mi->master) {
         if (FCorrectThread(mi->master))
             freeClient(mi->master);
@@ -3173,7 +3173,7 @@ void replicationHandleMasterDisconnection(redisMaster *mi) {
             moduleFireServerEvent(REDISMODULE_EVENT_MASTER_LINK_CHANGE,
                                 REDISMODULE_SUBEVENT_MASTER_LINK_DOWN,
                                 NULL);
-        mi->master = NULL;
+        mi->master = nullptr;
         mi->repl_state = REPL_STATE_CONNECT;
         mi->repl_down_since = g_pserver->unixtime;
         /* We lost connection with our master, don't disconnect slaves yet,
@@ -3316,7 +3316,7 @@ void roleCommand(client *c) {
             if (mi->master != nullptr)
                 lock = std::unique_lock<fastlock>(mi->master->lock);
 
-            const char *slavestate = NULL;
+            const char *slavestate = nullptr;
             addReplyArrayLen(c,5);
             if (g_pserver->fActiveReplica)
                 addReplyBulkCBuffer(c,"active-replica",14);
@@ -3410,7 +3410,7 @@ void replicationCacheMaster(redisMaster *mi, client *c) {
     /* Invalidate the Peer ID cache. */
     if (c->peerid) {
         sdsfree(c->peerid);
-        c->peerid = NULL;
+        c->peerid = nullptr;
     }
 
     /* Caching the master happens instead of the actual freeClient() call,
@@ -3457,7 +3457,7 @@ void replicationCacheMasterUsingMyself(redisMaster *mi) {
     /* Set as cached master. */
     unlinkClient(mi->master);
     mi->cached_master = mi->master;
-    mi->master = NULL;
+    mi->master = nullptr;
 }
 
 /* Free a cached master, called when there are no longer the conditions for
@@ -3471,7 +3471,7 @@ void replicationDiscardCachedMaster(redisMaster *mi) {
         freeClient(mi->cached_master);
     else
         freeClientAsync(mi->cached_master);
-    mi->cached_master = NULL;
+    mi->cached_master = nullptr;
 }
 
 /* Turn the cached master into the current master, using the file descriptor
@@ -3482,7 +3482,7 @@ void replicationDiscardCachedMaster(redisMaster *mi) {
  * master left. */
 void replicationResurrectCachedMaster(redisMaster *mi, connection *conn) {
     mi->master = mi->cached_master;
-    mi->cached_master = NULL;
+    mi->cached_master = nullptr;
     mi->master->conn = conn;
     connSetPrivateData(mi->master->conn, mi->master);
     mi->master->flags &= ~(CLIENT_CLOSE_AFTER_REPLY|CLIENT_CLOSE_ASAP);
@@ -3623,7 +3623,7 @@ void replicationScriptCacheAdd(sds sha1) {
 /* Returns non-zero if the specified entry exists inside the cache, that is,
  * if all the slaves are aware of this script SHA1. */
 int replicationScriptCacheExists(sds sha1) {
-    return dictFind(g_pserver->repl_scriptcache_dict,sha1) != NULL;
+    return dictFind(g_pserver->repl_scriptcache_dict,sha1) != nullptr;
 }
 
 /* ----------------------- SYNCHRONOUS REPLICATION --------------------------

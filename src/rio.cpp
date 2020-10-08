@@ -267,9 +267,9 @@ void rioFreeConn(rio *r, sds *remaining) {
         *remaining = r->io.conn.buf;
     } else {
         sdsfree(r->io.conn.buf);
-        if (remaining) *remaining = NULL;
+        if (remaining) *remaining = nullptr;
     }
-    r->io.conn.buf = NULL;
+    r->io.conn.buf = nullptr;
 }
 
 /* ------------------- File descriptor implementation ------------------

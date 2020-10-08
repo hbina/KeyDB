@@ -56,7 +56,7 @@ stream *streamNew(void) {
     s->length = 0;
     s->last_id.ms = 0;
     s->last_id.seq = 0;
-    s->cgroups = NULL; /* Created on demand to save memory when not used. */
+    s->cgroups = nullptr; /* Created on demand to save memory when not used. */
     return s;
 }
 
@@ -215,7 +215,7 @@ int streamAppendItem(stream *s, robj **argv, int64_t numfields, streamID *added_
     raxSeek(&ri,"$",NULL,0);
 
     size_t lp_bytes = 0;        /* Total bytes in the tail listpack. */
-    unsigned char *lp = NULL;   /* Tail listpack pointer. */
+    unsigned char *lp = nullptr;   /* Tail listpack pointer. */
 
     /* Get a reference to the tail node listpack. */
     if (raxNext(&ri)) {
@@ -269,10 +269,10 @@ int streamAppendItem(stream *s, robj **argv, int64_t numfields, streamID *added_
         if (g_pserver->stream_node_max_bytes &&
             lp_bytes >= g_pserver->stream_node_max_bytes)
         {
-            lp = NULL;
+            lp = nullptr;
         } else if (g_pserver->stream_node_max_entries) {
             int64_t count = lpGetInteger(lpFirst(lp));
-            if (count >= g_pserver->stream_node_max_entries) lp = NULL;
+            if (count >= g_pserver->stream_node_max_entries) lp = nullptr;
         }
     }
 
@@ -547,8 +547,8 @@ void streamIteratorStart(streamIterator *si, stream *s, streamID *start, streamI
         }
     }
     si->pstream = s;
-    si->lp = NULL; /* There is no current listpack right now. */
-    si->lp_ele = NULL; /* Current listpack cursor. */
+    si->lp = nullptr; /* There is no current listpack right now. */
+    si->lp_ele = nullptr; /* Current listpack cursor. */
     si->rev = rev;  /* Direction, if non-zero reversed, from end to start. */
 }
 
@@ -614,8 +614,8 @@ int streamIteratorGetID(streamIterator *si, streamID *id, int64_t *numfields) {
                  * its start. */
                 int64_t lp_count = lpGetInteger(si->lp_ele);
                 if (lp_count == 0) { /* We reached the master entry. */
-                    si->lp = NULL;
-                    si->lp_ele = NULL;
+                    si->lp = nullptr;
+                    si->lp_ele = nullptr;
                     break;
                 }
                 while(lp_count--) si->lp_ele = lpPrev(si->lp,si->lp_ele);
@@ -949,7 +949,7 @@ void streamPropagateGroupID(client *c, robj *key, streamCG *group, robj *groupna
                                            boundaries, just the entries. */
 #define STREAM_RWR_HISTORY (1<<2)       /* Only serve consumer local PEL. */
 size_t streamReplyWithRange(client *c, stream *s, streamID *start, streamID *end, size_t count, int rev, streamCG *group, streamConsumer *consumer, int flags, streamPropInfo *spi) {
-    void *arraylen_ptr = NULL;
+    void *arraylen_ptr = nullptr;
     size_t arraylen = 0;
     streamIterator si;
     int64_t numfields;
@@ -1120,7 +1120,7 @@ robj *streamTypeLookupWriteOrCreate(client *c, robj *key) {
     } else {
         if (o->type != OBJ_STREAM) {
             addReply(c,shared.wrongtypeerr);
-            return NULL;
+            return nullptr;
         }
     }
     return o;
@@ -1388,12 +1388,12 @@ void xreadCommand(client *c) {
     #define STREAMID_STATIC_VECTOR_LEN 8
     streamID static_ids[STREAMID_STATIC_VECTOR_LEN];
     streamID *ids = static_ids;
-    streamCG **groups = NULL;
+    streamCG **groups = nullptr;
     int xreadgroup = sdslen(szFromObj(c->argv[0])) == 10; /* XREAD or XREADGROUP? */
-    robj *groupname = NULL;
-    robj *consumername = NULL;
+    robj *groupname = nullptr;
+    robj *consumername = nullptr;
     size_t arraylen = 0;
-    void *arraylen_ptr = NULL;
+    void *arraylen_ptr = nullptr;
 
     /* Parse arguments. */
     for (int i = 1; i < c->argc; i++) {
@@ -1472,7 +1472,7 @@ void xreadCommand(client *c) {
         robj *key = c->argv[i-streams_count];
         robj_roptr o = lookupKeyRead(c->db,key);
         if (o && checkType(c,o,OBJ_STREAM)) goto cleanup;
-        streamCG *group = NULL;
+        streamCG *group = nullptr;
 
         /* If a group was specified, than we need to be sure that the
          * key and group actually exist. */
@@ -1578,7 +1578,7 @@ void xreadCommand(client *c) {
              * of the stream and the data we extracted from it. */
             if (c->resp == 2) addReplyArrayLen(c,2);
             addReplyBulk(c,c->argv[streams_arg+i]);
-            streamConsumer *consumer = NULL;
+            streamConsumer *consumer = nullptr;
             if (groups) consumer = streamLookupConsumer(groups[i],
                                                         szFromObj(consumername),
                                                         SLC_NONE);
@@ -1628,8 +1628,8 @@ void xreadCommand(client *c) {
             c->bpop.xread_consumer = consumername;
             c->bpop.xread_group_noack = noack;
         } else {
-            c->bpop.xread_group = NULL;
-            c->bpop.xread_consumer = NULL;
+            c->bpop.xread_group = nullptr;
+            c->bpop.xread_consumer = nullptr;
         }
         goto cleanup;
     }
@@ -1687,7 +1687,7 @@ void streamFreeConsumer(streamConsumer *sc) {
 streamCG *streamCreateCG(stream *s, char *name, size_t namelen, streamID *id) {
     if (s->cgroups == NULL) s->cgroups = raxNew();
     if (raxFind(s->cgroups,(unsigned char*)name,namelen) != raxNotFound)
-        return NULL;
+        return nullptr;
 
     streamCG *cg = (streamCG*)zmalloc(sizeof(*cg), MALLOC_SHARED);
     cg->pel = raxNew();
@@ -1707,7 +1707,7 @@ void streamFreeCG(streamCG *cg) {
 /* Lookup the consumer group in the specified stream and returns its
  * pointer, otherwise if there is no such group, NULL is returned. */
 streamCG *streamLookupCG(stream *s, sds groupname) {
-    if (s->cgroups == NULL) return NULL;
+    if (s->cgroups == NULL) return nullptr;
     streamCG *cg = (streamCG*)raxFind(s->cgroups,(unsigned char*)groupname,
                            sdslen(groupname));
     return (cg == raxNotFound) ? NULL : cg;
@@ -1723,7 +1723,7 @@ streamConsumer *streamLookupConsumer(streamCG *cg, sds name, int flags) {
     streamConsumer *consumer = (streamConsumer*)raxFind(cg->consumers,(unsigned char*)name,
                                sdslen(name));
     if (consumer == raxNotFound) {
-        if (!create) return NULL;
+        if (!create) return nullptr;
         consumer = (streamConsumer*)zmalloc(sizeof(*consumer), MALLOC_SHARED);
         consumer->name = sdsdup(name);
         consumer->pel = raxNew();
@@ -1780,9 +1780,9 @@ void xgroupCommand(client *c) {
 "HELP                                     -- Prints this help.",
 NULL
     };
-    stream *s = NULL;
-    sds grpname = NULL;
-    streamCG *cg = NULL;
+    stream *s = nullptr;
+    sds grpname = nullptr;
+    streamCG *cg = nullptr;
     char *opt = szFromObj(c->argv[1]); /* Subcommand name. */
     int mkstream = 0;
     robj *o;
@@ -1943,7 +1943,7 @@ void xsetidCommand(client *c) {
  * acknowledged, that is, the IDs we were actually able to resolve in the PEL.
  */
 void xackCommand(client *c) {
-    streamCG *group = NULL;
+    streamCG *group = nullptr;
     robj_roptr o = lookupKeyRead(c->db,c->argv[1]);
     if (o) {
         if (checkType(c,o,OBJ_STREAM)) return; /* Type error. */
@@ -2002,7 +2002,7 @@ void xpendingCommand(client *c) {
                                     informations about the PEL. */
     robj *key = c->argv[1];
     robj *groupname = c->argv[2];
-    robj *consumername = (c->argc == 7) ? c->argv[6] : NULL;
+    robj *consumername = (c->argc == 7) ? c->argv[6] : nullptr;
     streamID startid, endid;
     long long count;
 
@@ -2083,7 +2083,7 @@ void xpendingCommand(client *c) {
     }
     /* XPENDING <key> <group> <start> <stop> <count> [<consumer>] variant. */
     else {
-        streamConsumer *consumer = NULL;
+        streamConsumer *consumer = nullptr;
         if (consumername) {
             consumer = streamLookupConsumer(group,
                                             szFromObj(consumername),
@@ -2206,7 +2206,7 @@ void xpendingCommand(client *c) {
  * successfully claimed, so that the caller is able to understand
  * what messages it is now in charge of. */
 void xclaimCommand(client *c) {
-    streamCG *group = NULL;
+    streamCG *group = nullptr;
     robj_roptr o = lookupKeyRead(c->db,c->argv[1]);
     long long minidle; /* Minimum idle time argument. */
     long long retrycount = -1;   /* -1 means RETRYCOUNT option not given. */
@@ -2303,7 +2303,7 @@ void xclaimCommand(client *c) {
     }
 
     /* Do the actual claiming. */
-    streamConsumer *consumer = NULL;
+    streamConsumer *consumer = nullptr;
     void *arraylenptr = addReplyDeferredLen(c);
     size_t arraylen = 0;
     for (int j = 5; j <= last_id_arg; j++) {
@@ -2707,7 +2707,7 @@ void xinfoCommand(client *c) {
 "HELP                                -- Print this help.",
 NULL
     };
-    stream *s = NULL;
+    stream *s = nullptr;
     char *opt;
     robj *key;
 

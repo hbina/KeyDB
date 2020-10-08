@@ -82,7 +82,7 @@ mutex_wrapper g_lock;
 #else
 fastlock g_lock("AE (global)");
 #endif
-thread_local aeEventLoop *g_eventLoopThisThread = NULL;
+thread_local aeEventLoop *g_eventLoopThisThread = nullptr;
 
 #define AE_ASSERT(x) if (!(x)) do { fprintf(stderr, "AE_ASSERT FAILURE %s: %d\n", __FILE__, __LINE__); *((volatile int*)1) = 1; } while(0)
 
@@ -333,12 +333,12 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
     if (eventLoop->events == NULL || eventLoop->fired == NULL) goto err;
     eventLoop->setsize = setsize;
     eventLoop->lastTime = time(NULL);
-    eventLoop->timeEventHead = NULL;
+    eventLoop->timeEventHead = nullptr;
     eventLoop->timeEventNextId = 0;
     eventLoop->stop = 0;
     eventLoop->maxfd = -1;
-    eventLoop->beforesleep = NULL;
-    eventLoop->aftersleep = NULL;
+    eventLoop->beforesleep = nullptr;
+    eventLoop->aftersleep = nullptr;
     eventLoop->flags = 0;
     if (aeApiCreate(eventLoop) == -1) goto err;
     /* Events with mask == AE_NONE are not set. So let's initialize the
@@ -365,7 +365,7 @@ err:
         zfree(eventLoop->fired);
         zfree(eventLoop);
     }
-    return NULL;
+    return nullptr;
 }
 
 /* Return the current set size. */
@@ -537,7 +537,7 @@ extern "C" long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long millise
     te->timeProc = proc;
     te->finalizerProc = finalizerProc;
     te->clientData = clientData;
-    te->prev = NULL;
+    te->prev = nullptr;
     te->next = eventLoop->timeEventHead;
     te->refcount = 0;
     if (te->next)
@@ -575,7 +575,7 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 {
     AE_ASSERT(g_eventLoopThisThread == NULL || g_eventLoopThisThread == eventLoop);
     aeTimeEvent *te = eventLoop->timeEventHead;
-    aeTimeEvent *nearest = NULL;
+    aeTimeEvent *nearest = nullptr;
 
     while(te) {
         if (!nearest || te->when_sec < nearest->when_sec ||
@@ -759,7 +759,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
     if (eventLoop->maxfd != -1 ||
         ((flags & AE_TIME_EVENTS) && !(flags & AE_DONT_WAIT))) {
         int j;
-        aeTimeEvent *shortest = NULL;
+        aeTimeEvent *shortest = nullptr;
         struct timeval tv, *tvp;
 
         if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
@@ -792,7 +792,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
                 tvp = &tv;
             } else {
                 /* Otherwise we can block */
-                tvp = NULL; /* wait forever */
+                tvp = nullptr; /* wait forever */
             }
         }
 

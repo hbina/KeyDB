@@ -1275,7 +1275,7 @@ int objectSetLRUOrLFU(robj *val, long long lfu_freq, long long lru_idle,
 robj *objectCommandLookup(client *c, robj *key) {
     dictEntry *de;
 
-    if ((de = dictFind(c->db->pdict,ptrFromObj(key))) == NULL) return NULL;
+    if ((de = dictFind(c->db->pdict,ptrFromObj(key))) == NULL) return nullptr;
     return (robj*) dictGetVal(de);
 }
 

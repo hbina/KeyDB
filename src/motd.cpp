@@ -14,7 +14,7 @@
 
 static const char *szMotdCachePath()
 {
-    static sds sdsMotdCachePath = NULL;
+    static sds sdsMotdCachePath = nullptr;
     if (sdsMotdCachePath != NULL)
         return sdsMotdCachePath;
 
@@ -36,7 +36,7 @@ static char *fetchMOTDFromCache()
 {
     struct stat attrib;
     if (stat(szMotdCachePath(), &attrib) != 0)
-        return NULL;
+        return nullptr;
     time_t t = attrib.st_mtim.tv_sec;
     time_t now = time(NULL);
     if ((now - t) < 14400)
@@ -44,7 +44,7 @@ static char *fetchMOTDFromCache()
         // If our cache was updated no more than 4 hours ago use it instead of fetching the MOTD
         FILE *pf = fopen(szMotdCachePath(), "rb");
         if (pf == NULL)
-            return NULL;
+            return nullptr;
         fseek(pf, 0L, SEEK_END);
         long cb = ftell(pf);
         fseek(pf, 0L, SEEK_SET);    // rewind
@@ -54,11 +54,11 @@ static char *fetchMOTDFromCache()
         if ((long)cbRead != cb)
         {
             sdsfree(str);
-            return NULL;
+            return nullptr;
         }
         return str;
     }
-    return NULL;
+    return nullptr;
 }
 
 static void setMOTDCache(const char *sz)
@@ -99,7 +99,7 @@ extern "C" char *fetchMOTD(int cache)
         if(res != CURLE_OK)
         {
             sdsfree(str);
-            str = NULL;
+            str = nullptr;
         }
         else
         {
@@ -109,7 +109,7 @@ extern "C" char *fetchMOTD(int cache)
             {
                 // An error code not in the 200s implies an error
                 sdsfree(str);
-                str = NULL;
+                str = nullptr;
             }
         }
 
@@ -126,7 +126,7 @@ extern "C" char *fetchMOTD(int cache)
 
 extern "C" char *fetchMOTD(int /* cache */)
 {
-    return NULL;
+    return nullptr;
 }
 
 #endif

@@ -56,7 +56,7 @@ void *listPopSaver(unsigned char *data, unsigned int sz) {
 
 robj *listTypePop(robj *subject, int where) {
     long long vlong;
-    robj *value = NULL;
+    robj *value = nullptr;
 
     int ql_where = where == LIST_HEAD ? QUICKLIST_HEAD : QUICKLIST_TAIL;
     if (subject->encoding == OBJ_ENCODING_QUICKLIST) {
@@ -86,7 +86,7 @@ listTypeIterator *listTypeInitIterator(robj_roptr subject, long index,
     li->subject = subject;
     li->encoding = subject->encoding;
     li->direction = direction;
-    li->iter = NULL;
+    li->iter = nullptr;
     /* LIST_HEAD means start at TAIL and move *towards* head.
      * LIST_TAIL means start at HEAD and move *towards tail. */
     int iter_direction =
@@ -124,7 +124,7 @@ int listTypeNext(listTypeIterator *li, listTypeEntry *entry) {
 
 /* Return entry or NULL at the current position of the iterator. */
 robj *listTypeGet(listTypeEntry *entry) {
-    robj *value = NULL;
+    robj *value = nullptr;
     if (entry->li->encoding == OBJ_ENCODING_QUICKLIST) {
         if (entry->entry.value) {
             value = createStringObject((char *)entry->entry.value,
@@ -315,7 +315,7 @@ void lindexCommand(client *c) {
     robj_roptr o = lookupKeyReadOrReply(c,c->argv[1],shared.null[c->resp]);
     if (o == nullptr || checkType(c,o,OBJ_LIST)) return;
     long index;
-    robj *value = NULL;
+    robj *value = nullptr;
 
     if ((getLongFromObjectOrReply(c, c->argv[2], &index, NULL) != C_OK))
         return;
@@ -565,7 +565,7 @@ void lposCommand(client *c) {
     if (checkType(c,o,OBJ_LIST)) return;
 
     /* If we got the COUNT option, prepare to emit an array. */
-    void *arraylenptr = NULL;
+    void *arraylenptr = nullptr;
     if (count != -1) arraylenptr = addReplyDeferredLen(c);
 
     /* Seek the element. */

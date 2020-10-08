@@ -94,7 +94,7 @@ static int parseProtocolsConfig(const char *str) {
 
 /* list of connections with pending data already read from the socket, but not
  * served to the reader yet. */
-static thread_local list *pending_list = NULL;
+static thread_local list *pending_list = nullptr;
 
 /**
  * OpenSSL global initialization and locking handling callbacks.
@@ -164,7 +164,7 @@ void tlsInitThread(void)
  */
 int tlsConfigure(redisTLSContextConfig *ctx_config) {
     char errbuf[256];
-    SSL_CTX *ctx = NULL;
+    SSL_CTX *ctx = nullptr;
     int protocols;
 
     if (!ctx_config->cert_file) {
@@ -253,7 +253,7 @@ int tlsConfigure(redisTLSContextConfig *ctx_config) {
 
     if (ctx_config->dh_params_file) {
         FILE *dhfile = fopen(ctx_config->dh_params_file, "r");
-        DH *dh = NULL;
+        DH *dh = nullptr;
         if (!dhfile) {
             serverLog(LL_WARNING, "Failed to load %s: %s", ctx_config->dh_params_file, strerror(errno));
             goto error;
@@ -426,7 +426,7 @@ static int handleSSLReturnCode(tls_connection *conn, int ret_value, WantIOType *
             case SSL_ERROR_SYSCALL:
                 conn->c.last_errno = errno;
                 if (conn->ssl_error) zfree(conn->ssl_error);
-                conn->ssl_error = errno ? zstrdup(strerror(errno)) : NULL;
+                conn->ssl_error = errno ? zstrdup(strerror(errno)) : nullptr;
                 break;
             default:
                 /* Error! */
@@ -535,7 +535,7 @@ void tlsHandleEvent(tls_connection *conn, int mask) {
             locker.arm(nullptr);
             if (!callHandler((connection *) conn, conn->c.conn_handler)) return;
             }
-            conn->c.conn_handler = NULL;
+            conn->c.conn_handler = nullptr;
             break;
         case CONN_STATE_ACCEPTING:
             ret = SSL_accept(conn->ssl);
@@ -561,7 +561,7 @@ void tlsHandleEvent(tls_connection *conn, int mask) {
             locker.arm(nullptr);
             if (!callHandler((connection *) conn, conn->c.conn_handler)) return;
             }
-            conn->c.conn_handler = NULL;
+            conn->c.conn_handler = nullptr;
             break;
         case CONN_STATE_CONNECTED:
         {
@@ -621,7 +621,7 @@ void tlsHandleEvent(tls_connection *conn, int mask) {
                     }
                 } else if (conn->pending_list_node) {
                     listDelNode(pending_list, conn->pending_list_node);
-                    conn->pending_list_node = NULL;
+                    conn->pending_list_node = nullptr;
                 }
             }
 
@@ -646,17 +646,17 @@ static void connTLSCloseCore(tls_connection *conn) {
 
     if (conn->ssl) {
         SSL_free(conn->ssl);
-        conn->ssl = NULL;
+        conn->ssl = nullptr;
     }
 
     if (conn->ssl_error) {
         zfree(conn->ssl_error);
-        conn->ssl_error = NULL;
+        conn->ssl_error = nullptr;
     }
 
     if (conn->pending_list_node) {
         listDelNode(pending_list, conn->pending_list_node);
-        conn->pending_list_node = NULL;
+        conn->pending_list_node = nullptr;
     }
 
     CT_Socket.close(&conn->c);
@@ -699,7 +699,7 @@ static int connTLSAccept(connection *_conn, ConnectionCallbackFunc accept_handle
 
     conn->c.state = CONN_STATE_CONNECTED;
     if (!callHandler((connection *) conn, conn->c.conn_handler)) return C_OK;
-    conn->c.conn_handler = NULL;
+    conn->c.conn_handler = nullptr;
 
     return C_OK;
 }
@@ -788,7 +788,7 @@ static const char *connTLSGetLastError(connection *conn_) {
     tls_connection *conn = (tls_connection *) conn_;
 
     if (conn->ssl_error) return conn->ssl_error;
-    return NULL;
+    return nullptr;
 }
 
 int connTLSSetWriteHandler(connection *conn, ConnectionCallbackFunc func, int barrier, bool fThreadSafe) {
@@ -972,14 +972,14 @@ int tlsConfigure(redisTLSContextConfig *ctx_config) {
 }
 
 connection *connCreateTLS(void) { 
-    return NULL;
+    return nullptr;
 }
 
 connection *connCreateAcceptedTLS(int fd, int require_auth) {
     UNUSED(fd);
     UNUSED(require_auth);
 
-    return NULL;
+    return nullptr;
 }
 
 int tlsHasPendingData() {

@@ -455,7 +455,7 @@ void activeExpireCycle(int type) {
  * with a DB id > 63 are not expired, but a trivial fix is to set the bitmap
  * to the max 64 bit unsigned value when we know there is a key with a DB
  * ID greater than 63, and check all the configured DBs in such a case. */
-dict *slaveKeysWithExpire = NULL;
+dict *slaveKeysWithExpire = nullptr;
 
 /* Check the set of keys created by the master with an expire set in order to
  * check if they should be evicted. */
@@ -571,7 +571,7 @@ size_t getSlaveKeyWithExpireCount(void) {
 void flushSlaveKeysWithExpireList(void) {
     if (slaveKeysWithExpire) {
         dictRelease(slaveKeysWithExpire);
-        slaveKeysWithExpire = NULL;
+        slaveKeysWithExpire = nullptr;
     }
 }
 

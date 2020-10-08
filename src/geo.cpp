@@ -53,7 +53,7 @@ int zslValueLteMax(double value, zrangespec *spec);
 geoArray *geoArrayCreate(void) {
     geoArray *ga = (geoArray*)zmalloc(sizeof(*ga), MALLOC_SHARED);
     /* It gets allocated on first geoArrayAppend() call. */
-    ga->array = NULL;
+    ga->array = nullptr;
     ga->buckets = 0;
     ga->used = 0;
     return ga;
@@ -232,7 +232,7 @@ int geoGetPointsInRange(robj_roptr zobj, double min, double max, double lon, dou
     if (zobj->encoding == OBJ_ENCODING_ZIPLIST) {
         unsigned char *zl = (unsigned char*)zobj->m_ptr;
         unsigned char *eptr, *sptr;
-        unsigned char *vstr = NULL;
+        unsigned char *vstr = nullptr;
         unsigned int vlen = 0;
         long long vlong = 0;
         double score = 0;
@@ -461,7 +461,7 @@ void geoaddCommand(client *c) {
  * GEORADIUSBYMEMBER key member radius unit ... options ... */
 void georadiusGeneric(client *c, int flags) {
     robj *key = c->argv[1];
-    robj *storekey = NULL;
+    robj *storekey = nullptr;
     int storedist = 0; /* 0 for STORE, 1 for STOREDIST. */
 
     /* Look up the requested zset */
@@ -616,7 +616,7 @@ void georadiusGeneric(client *c, int flags) {
                 addReplyArrayLen(c, option_length + 1);
 
             addReplyBulkSds(c,gp->member);
-            gp->member = NULL;
+            gp->member = nullptr;
 
             if (withdist)
                 addReplyDoubleDistance(c, gp->dist);
@@ -652,7 +652,7 @@ void georadiusGeneric(client *c, int flags) {
             if (maxelelen < elelen) maxelelen = elelen;
             znode = zslInsert(zs->zsl,score,gp->member);
             serverAssert(dictAdd(zs->pdict,gp->member,&znode->score) == DICT_OK);
-            gp->member = NULL;
+            gp->member = nullptr;
         }
 
         if (returned_items) {
@@ -804,7 +804,7 @@ void geodistCommand(client *c) {
     }
 
     /* Look up the requested zset */
-    robj_roptr zobj = NULL;
+    robj_roptr zobj = nullptr;
     if ((zobj = lookupKeyReadOrReply(c, c->argv[1], shared.null[c->resp]))
         == nullptr || checkType(c, zobj, OBJ_ZSET)) return;
 

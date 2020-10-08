@@ -366,7 +366,7 @@ void serveClientsBlockedOnStreamKey(robj *o, readyList *rl) {
              * always blocked for the ">" ID: we need to deliver
              * only new messages and avoid unblocking the client
              * otherwise. */
-            streamCG *group = NULL;
+            streamCG *group = nullptr;
             if (receiver->bpop.xread_group) {
                 group = streamLookupCG(s,
                         szFromObj(receiver->bpop.xread_group));
@@ -388,7 +388,7 @@ void serveClientsBlockedOnStreamKey(robj *o, readyList *rl) {
                 streamIncrID(&start);
 
                 /* Lookup the consumer for the group, if any. */
-                streamConsumer *consumer = NULL;
+                streamConsumer *consumer = nullptr;
                 int noack = 0;
 
                 if (group) {
@@ -646,13 +646,13 @@ void unblockClientWaitingData(client *c) {
     dictEmpty(c->bpop.keys,NULL);
     if (c->bpop.target) {
         decrRefCount(c->bpop.target);
-        c->bpop.target = NULL;
+        c->bpop.target = nullptr;
     }
     if (c->bpop.xread_group) {
         decrRefCount(c->bpop.xread_group);
         decrRefCount(c->bpop.xread_consumer);
-        c->bpop.xread_group = NULL;
-        c->bpop.xread_consumer = NULL;
+        c->bpop.xread_group = nullptr;
+        c->bpop.xread_consumer = nullptr;
     }
 }
 

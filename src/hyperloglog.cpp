@@ -683,8 +683,8 @@ int hllSparseSet(robj *o, long index, uint8_t count) {
     end = p + sdslen(szFromObj(o)) - HLL_HDR_SIZE;
 
     first = 0;
-    prev = NULL; /* Points to previous opcode at the end of the loop. */
-    next = NULL; /* Points to the next opcode at the end of the loop. */
+    prev = nullptr; /* Points to previous opcode at the end of the loop. */
+    next = nullptr; /* Points to the next opcode at the end of the loop. */
     span = 0;
     while(p < end) {
         long oplen;
@@ -712,7 +712,7 @@ int hllSparseSet(robj *o, long index, uint8_t count) {
     if (span == 0 || p >= end) return -1; /* Invalid format. */
 
     next = HLL_SPARSE_IS_XZERO(p) ? p+2 : p+1;
-    if (next >= end) next = NULL;
+    if (next >= end) next = nullptr;
 
     /* Cache current opcode type to avoid using the macro again and
      * again for something that will not change.
@@ -1401,7 +1401,7 @@ void pfselftestCommand(client *c) {
     unsigned int j, i;
     sds bitcounters = sdsnewlen(NULL,HLL_DENSE_SIZE);
     struct hllhdr *hdr = (struct hllhdr*) bitcounters, *hdr2;
-    robj *o = NULL;
+    robj *o = nullptr;
     uint8_t bytecounters[HLL_REGISTERS];
     int64_t checkpoint = 1;
     uint64_t seed = 0;

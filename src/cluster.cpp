@@ -44,7 +44,7 @@
 /* A global reference to myself is handy to make code more clear.
  * Myself always points to g_pserver->cluster->myself, that is, the clusterNode
  * that represents this node. */
-clusterNode *myself = NULL;
+clusterNode *myself = nullptr;
 
 clusterNode *createClusterNode(char *nodename, int flags);
 int clusterAddNode(clusterNode *node);
@@ -81,7 +81,7 @@ struct redisMaster *getFirstMaster()
 {
     serverAssert(listLength(g_pserver->masters) <= 1);
     if (!listLength(g_pserver->masters))
-        return NULL;
+        return nullptr;
     return (redisMaster*)listFirst(g_pserver->masters)->value;
 }
 
@@ -474,7 +474,7 @@ void clusterInit(void) {
     }
 
     g_pserver->cluster = (clusterState*)zmalloc(sizeof(clusterState), MALLOC_LOCAL);
-    g_pserver->cluster->myself = NULL;
+    g_pserver->cluster->myself = nullptr;
     g_pserver->cluster->currentEpoch = 0;
     g_pserver->cluster->state = CLUSTER_FAIL;
     g_pserver->cluster->size = 1;
@@ -641,7 +641,7 @@ clusterLink *createClusterLink(clusterNode *node) {
     link->sndbuf = sdsempty();
     link->rcvbuf = sdsempty();
     link->node = node;
-    link->conn = NULL;
+    link->conn = nullptr;
     return link;
 }
 
@@ -653,7 +653,7 @@ void freeClusterLink(clusterLink *link) {
     {
         // we can't perform this operation on this thread, queue it on the main thread
         if (link->node)
-            link->node->link = NULL;
+            link->node->link = nullptr;
         link->node = nullptr;
         int res = aePostFunction(g_pserver->rgthreadvar[IDX_EVENT_LOOP_MAIN].el, [link]{
             freeClusterLink(link);
@@ -663,12 +663,12 @@ void freeClusterLink(clusterLink *link) {
     }
     if (link->conn) {
         connClose(link->conn);
-        link->conn = NULL;
+        link->conn = nullptr;
     }
     sdsfree(link->sndbuf);
     sdsfree(link->rcvbuf);
     if (link->node)
-        link->node->link = NULL;
+        link->node->link = nullptr;
     zfree(link);
 }
 
@@ -813,12 +813,12 @@ clusterNode *createClusterNode(char *nodename, int flags) {
     memset(node->slots,0,sizeof(node->slots));
     node->numslots = 0;
     node->numslaves = 0;
-    node->slaves = NULL;
-    node->slaveof = NULL;
+    node->slaves = nullptr;
+    node->slaveof = nullptr;
     node->ping_sent = node->pong_received = 0;
     node->data_received = 0;
     node->fail_time = 0;
-    node->link = NULL;
+    node->link = nullptr;
     memset(node->ip,0,sizeof(node->ip));
     node->port = 0;
     node->cport = 0;
@@ -975,7 +975,7 @@ void freeClusterNode(clusterNode *n) {
     /* If the node has associated slaves, we have to set
      * all the slaves->slaveof fields to NULL (unknown). */
     for (j = 0; j < n->numslaves; j++)
-        n->slaves[j]->slaveof = NULL;
+        n->slaves[j]->slaveof = nullptr;
 
     /* Remove this node from the list of slaves of its master. */
     if (nodeIsSlave(n) && n->slaveof) clusterNodeRemoveSlave(n->slaveof,n);
@@ -1020,9 +1020,9 @@ void clusterDelNode(clusterNode *delnode) {
     /* 1) Mark slots as unassigned. */
     for (j = 0; j < CLUSTER_SLOTS; j++) {
         if (g_pserver->cluster->importing_slots_from[j] == delnode)
-            g_pserver->cluster->importing_slots_from[j] = NULL;
+            g_pserver->cluster->importing_slots_from[j] = nullptr;
         if (g_pserver->cluster->migrating_slots_to[j] == delnode)
-            g_pserver->cluster->migrating_slots_to[j] = NULL;
+            g_pserver->cluster->migrating_slots_to[j] = nullptr;
         if (g_pserver->cluster->slots[j] == delnode)
             clusterDelSlot(j);
     }
@@ -1048,7 +1048,7 @@ clusterNode *clusterLookupNode(const char *name) {
 
     de = dictFind(g_pserver->cluster->nodes,s);
     sdsfree(s);
-    if (de == NULL) return NULL;
+    if (de == NULL) return nullptr;
     return (clusterNode*)dictGetVal(de);
 }
 
@@ -1270,7 +1270,7 @@ int clusterBlacklistExists(char *nodeid) {
     int retval;
 
     clusterBlacklistCleanup();
-    retval = dictFind(g_pserver->cluster->nodes_black_list,id) != NULL;
+    retval = dictFind(g_pserver->cluster->nodes_black_list,id) != nullptr;
     sdsfree(id);
     return retval;
 }
@@ -1381,7 +1381,7 @@ int clusterHandshakeInProgress(char *ip, int port, int cport) {
             node->cport == cport) break;
     }
     dictReleaseIterator(di);
-    return de != NULL;
+    return de != nullptr;
 }
 
 /* Start an handshake with the specified address if there is not one
@@ -1634,7 +1634,7 @@ void clusterSetNodeAsMaster(clusterNode *n) {
     }
     n->flags &= ~CLUSTER_NODE_SLAVE;
     n->flags |= CLUSTER_NODE_MASTER;
-    n->slaveof = NULL;
+    n->slaveof = nullptr;
 
     /* Update config and state. */
     clusterDoBeforeSleep(CLUSTER_TODO_SAVE_CONFIG|
@@ -1654,7 +1654,7 @@ void clusterSetNodeAsMaster(clusterNode *n) {
  * case we receive the info via an UPDATE packet. */
 void clusterUpdateSlotsConfigWith(clusterNode *sender, uint64_t senderConfigEpoch, unsigned char *slots) {
     int j;
-    clusterNode *curmaster, *newmaster = NULL;
+    clusterNode *curmaster, *newmaster = nullptr;
     /* The dirty slots list is a list of slots for which we lose the ownership
      * while having still keys inside. This usually happens after a failover
      * or after a manual cluster reconfiguration operated by the admin.
@@ -2060,7 +2060,7 @@ int clusterProcessPacket(clusterLink *link) {
          * instance claims is different compared to the set of slots we have
          * for it. Check this ASAP to avoid other computational expansive
          * checks later. */
-        clusterNode *sender_master = NULL; /* Sender or its master if slave. */
+        clusterNode *sender_master = nullptr; /* Sender or its master if slave. */
         int dirty_slots = 0; /* Sender claimed slots don't match my view? */
 
         if (sender) {
@@ -2814,7 +2814,7 @@ void clusterSendModule(clusterLink *link, uint64_t module_id, uint8_t type,
  * The function returns C_OK if the target is valid, otherwise C_ERR is
  * returned. */
 int clusterSendModuleMessageToTarget(const char *target, uint64_t module_id, uint8_t type, unsigned char *payload, uint32_t len) {
-    clusterNode *node = NULL;
+    clusterNode *node = nullptr;
 
     if (target != NULL) {
         node = clusterLookupNode(target);
@@ -3329,7 +3329,7 @@ void clusterHandleSlaveFailover(void) {
  */
 void clusterHandleSlaveMigration(int max_slaves) {
     int j, okslaves = 0;
-    clusterNode *mymaster = myself->slaveof, *target = NULL, *candidate = NULL;
+    clusterNode *mymaster = myself->slaveof, *target = NULL, *candidate = nullptr;
     dictIterator *di;
     dictEntry *de;
 
@@ -3453,7 +3453,7 @@ void resetManualFailover(void) {
     }
     g_pserver->cluster->mf_end = 0; /* No manual failover in progress. */
     g_pserver->cluster->mf_can_start = 0;
-    g_pserver->cluster->mf_slave = NULL;
+    g_pserver->cluster->mf_slave = nullptr;
     g_pserver->cluster->mf_master_offset = 0;
 }
 
@@ -3500,7 +3500,7 @@ void clusterCron(void) {
     int max_slaves; /* Max number of ok slaves for a single master. */
     int this_slaves; /* Number of ok slaves for our master (if we are slave). */
     mstime_t min_pong = 0, now = mstime();
-    clusterNode *min_pong_node = NULL;
+    clusterNode *min_pong_node = nullptr;
     static unsigned long long iteration = 0;
     mstime_t handshake_timeout;
 
@@ -3510,7 +3510,7 @@ void clusterCron(void) {
      * The option can be set at runtime via CONFIG SET, so we periodically check
      * if the option changed to reflect this into myself->ip. */
     {
-        static char *prev_ip = NULL;
+        static char *prev_ip = nullptr;
         char *curr_ip = g_pserver->cluster_announce_ip;
         int changed = 0;
 
@@ -3884,7 +3884,7 @@ int clusterDelSlot(int slot) {
 
     if (!n) return C_ERR;
     serverAssert(clusterNodeClearSlotBit(n,slot) == 1);
-    g_pserver->cluster->slots[slot] = NULL;
+    g_pserver->cluster->slots[slot] = nullptr;
     return C_OK;
 }
 
@@ -4484,7 +4484,7 @@ NULL
                 /* If this slot was set as importing we can clear this
                  * state as now we are the real owner of the slot. */
                 if (g_pserver->cluster->importing_slots_from[j])
-                    g_pserver->cluster->importing_slots_from[j] = NULL;
+                    g_pserver->cluster->importing_slots_from[j] = nullptr;
 
                 retval = del ? clusterDelSlot(j) :
                                clusterAddSlot(myself,j);
@@ -4534,8 +4534,8 @@ NULL
             g_pserver->cluster->importing_slots_from[slot] = n;
         } else if (!strcasecmp(szFromObj(c->argv[3]),"stable") && c->argc == 4) {
             /* CLUSTER SETSLOT <SLOT> STABLE */
-            g_pserver->cluster->importing_slots_from[slot] = NULL;
-            g_pserver->cluster->migrating_slots_to[slot] = NULL;
+            g_pserver->cluster->importing_slots_from[slot] = nullptr;
+            g_pserver->cluster->migrating_slots_to[slot] = nullptr;
         } else if (!strcasecmp(szFromObj(c->argv[3]),"node") && c->argc == 5) {
             /* CLUSTER SETSLOT <SLOT> NODE <NODE ID> */
             clusterNode *n = clusterLookupNode(szFromObj(c->argv[4]));
@@ -4560,7 +4560,7 @@ NULL
              * the migratig status. */
             if (countKeysInSlot(slot) == 0 &&
                 g_pserver->cluster->migrating_slots_to[slot])
-                g_pserver->cluster->migrating_slots_to[slot] = NULL;
+                g_pserver->cluster->migrating_slots_to[slot] = nullptr;
 
             /* If this node was importing this slot, assigning the slot to
              * itself also clears the importing status. */
@@ -4580,7 +4580,7 @@ NULL
                     serverLog(LL_WARNING,
                         "configEpoch updated after importing slot %d", slot);
                 }
-                g_pserver->cluster->importing_slots_from[slot] = NULL;
+                g_pserver->cluster->importing_slots_from[slot] = nullptr;
             }
             clusterDelSlot(slot);
             clusterAddSlot(n,slot);
@@ -5180,7 +5180,7 @@ migrateCachedSocket* migrateGetSocket(client *c, robj *host, robj *port, long ti
             sdsnew("-IOERR error or timeout connecting to the client\r\n"));
         connClose(conn);
         sdsfree(name);
-        return NULL;
+        return nullptr;
     }
     connEnableTcpNoDelay(conn);
 
@@ -5239,13 +5239,13 @@ void migrateCloseTimedoutSockets(void) {
 void migrateCommand(client *c) {
     migrateCachedSocket *cs;
     int copy = 0, replace = 0, j;
-    char *username = NULL;
-    char *password = NULL;
+    char *username = nullptr;
+    char *password = nullptr;
     long timeout;
     long dbid;
-    robj_roptr *ov = NULL; /* Objects to migrate. */
-    robj **kv = NULL; /* Key names. */
-    robj **newargv = NULL; /* Used to rewrite the command as DEL ... keys ... */
+    robj_roptr *ov = nullptr; /* Objects to migrate. */
+    robj **kv = nullptr; /* Key names. */
+    robj **newargv = nullptr; /* Used to rewrite the command as DEL ... keys ... */
     rio cmd, payload;
     int may_retry = 1;
     int write_error = 0;
@@ -5516,7 +5516,7 @@ try_again:
             /* No key transfer acknowledged, no need to rewrite as DEL. */
             zfree(newargv);
         }
-        newargv = NULL; /* Make it safe to call zfree() on it in the future. */
+        newargv = nullptr; /* Make it safe to call zfree() on it in the future. */
     }
 
     /* If we are here and a socket error happened, we don't want to retry.
@@ -5559,7 +5559,7 @@ socket_err:
      * again. */
     if (!argv_rewritten) migrateCloseSocket(c->argv[1],c->argv[2]);
     zfree(newargv);
-    newargv = NULL; /* This will get reallocated on retry. */
+    newargv = nullptr; /* This will get reallocated on retry. */
 
     /* Retry only if it's not a timeout and we never attempted a retry
      * (or the code jumping here did not set may_retry to zero). */
@@ -5648,8 +5648,8 @@ void readwriteCommand(client *c) {
  * CLUSTER_REDIR_DOWN_STATE and CLUSTER_REDIR_DOWN_RO_STATE if the cluster is
  * down but the user attempts to execute a command that addresses one or more keys. */
 clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, int argc, int *hashslot, int *error_code) {
-    clusterNode *n = NULL;
-    robj *firstkey = NULL;
+    clusterNode *n = nullptr;
+    robj *firstkey = nullptr;
     int multiple_keys = 0;
     multiState *ms, _ms;
     multiCmd mc;
@@ -5722,7 +5722,7 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
                     getKeysFreeResult(keyindex);
                     if (error_code)
                         *error_code = CLUSTER_REDIR_DOWN_UNBOUND;
-                    return NULL;
+                    return nullptr;
                 }
 
                 /* If we are migrating or importing this slot, we need to check
@@ -5746,7 +5746,7 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
                         getKeysFreeResult(keyindex);
                         if (error_code)
                             *error_code = CLUSTER_REDIR_CROSS_SLOT;
-                        return NULL;
+                        return nullptr;
                     } else {
                         /* Flag this request as one with multiple different
                          * keys. */
@@ -5776,7 +5776,7 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
             /* The cluster is configured to block commands when the
              * cluster is down. */
             if (error_code) *error_code = CLUSTER_REDIR_DOWN_STATE;
-            return NULL;
+            return nullptr;
         } else if (!(cmd->flags & CMD_READONLY) && !(cmd->proc == evalCommand)
                 && !(cmd->proc == evalShaCommand))
         {
@@ -5784,7 +5784,7 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
              * but this command is neither readonly, nor EVAL or
              * EVALSHA. */
             if (error_code) *error_code = CLUSTER_REDIR_DOWN_RO_STATE;
-            return NULL;
+            return nullptr;
         } else {
             /* Fall through and allow the command to be executed:
              * this happens when g_pserver->cluster_allow_reads_when_down is
@@ -5817,7 +5817,7 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
     {
         if (multiple_keys && missing_keys) {
             if (error_code) *error_code = CLUSTER_REDIR_UNSTABLE;
-            return NULL;
+            return nullptr;
         } else {
             return myself;
         }

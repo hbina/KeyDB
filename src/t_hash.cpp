@@ -59,7 +59,7 @@ int hashTypeGetFromZiplist(robj_roptr o, const char *field,
                            unsigned int *vlen,
                            long long *vll)
 {
-    unsigned char *zl, *fptr = NULL, *vptr = NULL;
+    unsigned char *zl, *fptr = NULL, *vptr = nullptr;
     int ret;
 
     serverAssert(o->encoding == OBJ_ENCODING_ZIPLIST);
@@ -93,7 +93,7 @@ const char *hashTypeGetFromHashTable(robj_roptr o, const char *field) {
     serverAssert(o->encoding == OBJ_ENCODING_HT);
 
     de = dictFind((dict*)ptrFromObj(o), field);
-    if (de == NULL) return NULL;
+    if (de == NULL) return nullptr;
     return (sds)dictGetVal(de);
 }
 
@@ -108,7 +108,7 @@ const char *hashTypeGetFromHashTable(robj_roptr o, const char *field) {
  * for C_OK and checking if vll (or vstr) is NULL. */
 int hashTypeGetValue(robj_roptr o, sds field, const unsigned char **vstr, unsigned int *vlen, long long *vll) {
     if (o->encoding == OBJ_ENCODING_ZIPLIST) {
-        *vstr = NULL;
+        *vstr = nullptr;
         if (hashTypeGetFromZiplist(o, field, vstr, vlen, vll) == 0)
             return C_OK;
     } else if (o->encoding == OBJ_ENCODING_HT) {
@@ -133,7 +133,7 @@ robj *hashTypeGetValueObject(robj_roptr o, sds field) {
     unsigned int vlen;
     long long vll;
 
-    if (hashTypeGetValue(o,field,&vstr,&vlen,&vll) == C_ERR) return NULL;
+    if (hashTypeGetValue(o,field,&vstr,&vlen,&vll) == C_ERR) return nullptr;
     if (vstr) return createStringObject((char*)vstr,vlen);
     else return createStringObjectFromLongLong(vll);
 }
@@ -144,7 +144,7 @@ robj *hashTypeGetValueObject(robj_roptr o, sds field) {
 size_t hashTypeGetValueLength(robj_roptr o, const char *field) {
     size_t len = 0;
     if (o->encoding == OBJ_ENCODING_ZIPLIST) {
-        const unsigned char *vstr = NULL;
+        const unsigned char *vstr = nullptr;
         unsigned int vlen = UINT_MAX;
         long long vll = LLONG_MAX;
 
@@ -165,7 +165,7 @@ size_t hashTypeGetValueLength(robj_roptr o, const char *field) {
  * exists, and 0 when it doesn't. */
 int hashTypeExists(robj_roptr o, const char *field) {
     if (o->encoding == OBJ_ENCODING_ZIPLIST) {
-        const unsigned char *vstr = NULL;
+        const unsigned char *vstr = nullptr;
         unsigned int vlen = UINT_MAX;
         long long vll = LLONG_MAX;
 
@@ -242,7 +242,7 @@ int hashTypeSet(robj *o, sds field, sds value, int flags) {
             sdsfree((sds)dictGetVal(de));
             if (flags & HASH_SET_TAKE_VALUE) {
                 dictGetVal(de) = value;
-                value = NULL;
+                value = nullptr;
             } else {
                 dictGetVal(de) = sdsdup(value);
             }
@@ -251,13 +251,13 @@ int hashTypeSet(robj *o, sds field, sds value, int flags) {
             sds f,v;
             if (flags & HASH_SET_TAKE_FIELD) {
                 f = field;
-                field = NULL;
+                field = nullptr;
             } else {
                 f = sdsdup(field);
             }
             if (flags & HASH_SET_TAKE_VALUE) {
                 v = value;
-                value = NULL;
+                value = nullptr;
             } else {
                 v = sdsdup(value);
             }
@@ -327,8 +327,8 @@ hashTypeIterator *hashTypeInitIterator(robj_roptr subject) {
     hi->encoding = subject->encoding;
 
     if (hi->encoding == OBJ_ENCODING_ZIPLIST) {
-        hi->fptr = NULL;
-        hi->vptr = NULL;
+        hi->fptr = nullptr;
+        hi->vptr = nullptr;
     } else if (hi->encoding == OBJ_ENCODING_HT) {
         hi->di = dictGetIterator((dict*)subject->m_ptr);
     } else {
@@ -425,7 +425,7 @@ sds hashTypeCurrentFromHashTable(hashTypeIterator *hi, int what) {
  * type checking if vstr == NULL. */
 void hashTypeCurrentObject(hashTypeIterator *hi, int what, unsigned char **vstr, unsigned int *vlen, long long *vll) {
     if (hi->encoding == OBJ_ENCODING_ZIPLIST) {
-        *vstr = NULL;
+        *vstr = nullptr;
         hashTypeCurrentFromZiplist(hi, what, vstr, vlen, vll);
     } else if (hi->encoding == OBJ_ENCODING_HT) {
         sds ele = hashTypeCurrentFromHashTable(hi, what);
@@ -456,7 +456,7 @@ robj *hashTypeLookupWriteOrCreate(client *c, robj *key) {
     } else {
         if (o->type != OBJ_HASH) {
             addReply(c,shared.wrongtypeerr);
-            return NULL;
+            return nullptr;
         }
     }
     return o;
@@ -650,7 +650,7 @@ static void addHashFieldToReply(client *c, robj_roptr o, sds field) {
     }
 
     if (o->encoding == OBJ_ENCODING_ZIPLIST) {
-        const unsigned char *vstr = NULL;
+        const unsigned char *vstr = nullptr;
         unsigned int vlen = UINT_MAX;
         long long vll = LLONG_MAX;
 
@@ -750,7 +750,7 @@ void hstrlenCommand(client *c) {
 
 static void addHashIteratorCursorToReply(client *c, hashTypeIterator *hi, int what) {
     if (hi->encoding == OBJ_ENCODING_ZIPLIST) {
-        unsigned char *vstr = NULL;
+        unsigned char *vstr = nullptr;
         unsigned int vlen = UINT_MAX;
         long long vll = LLONG_MAX;
 

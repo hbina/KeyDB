@@ -237,11 +237,11 @@ void *ACLListDupSds(void *item) {
  *
  * If the user with such name already exists NULL is returned. */
 user *ACLCreateUser(const char *name, size_t namelen) {
-    if (raxFind(Users,(unsigned char*)name,namelen) != raxNotFound) return NULL;
+    if (raxFind(Users,(unsigned char*)name,namelen) != raxNotFound) return nullptr;
     user *u = (user*)zmalloc(sizeof(*u), MALLOC_LOCAL);
     u->name = sdsnewlen(name,namelen);
     u->flags = USER_FLAG_DISABLED;
-    u->allowed_subcommands = NULL;
+    u->allowed_subcommands = nullptr;
     u->passwords = listCreate();
     u->patterns = listCreate();
     listSetMatchMethod(u->passwords,ACLListMatchSds);
@@ -607,7 +607,7 @@ void ACLResetSubcommandsForCommand(user *u, unsigned long id) {
         for (int i = 0; u->allowed_subcommands[id][i]; i++)
             sdsfree(u->allowed_subcommands[id][i]);
         zfree(u->allowed_subcommands[id]);
-        u->allowed_subcommands[id] = NULL;
+        u->allowed_subcommands[id] = nullptr;
     }
 }
 
@@ -624,7 +624,7 @@ void ACLResetSubcommands(user *u) {
         }
     }
     zfree(u->allowed_subcommands);
-    u->allowed_subcommands = NULL;
+    u->allowed_subcommands = nullptr;
 }
 
 
@@ -656,7 +656,7 @@ void ACLAddAllowedSubcommand(user *u, unsigned long id, const char *sub) {
     u->allowed_subcommands[id] = (sds*)zrealloc(u->allowed_subcommands[id],
                                  sizeof(sds)*items, MALLOC_LOCAL);
     u->allowed_subcommands[id][items-2] = sdsnew(sub);
-    u->allowed_subcommands[id][items-1] = NULL;
+    u->allowed_subcommands[id][items-1] = nullptr;
 }
 
 /* Set user properties according to the string "op". The following
@@ -945,7 +945,7 @@ void ACLInit(void) {
     UsersToLoad = listCreate();
     ACLLog = listCreate();
     ACLInitDefaultUser();
-    g_pserver->requirepass = NULL; /* Only used for backward compatibility. */
+    g_pserver->requirepass = nullptr; /* Only used for backward compatibility. */
 }
 
 /* Check the username and password pair and return C_OK if they are valid,
@@ -1015,7 +1015,7 @@ int ACLAuthenticateUser(client *c, robj *username, robj *password) {
  * command name, so that a command retains the same ID in case of modules that
  * are unloaded and later reloaded. */
 unsigned long ACLGetCommandID(const char *cmdname) {
-    static rax *map = NULL;
+    static rax *map = nullptr;
     static unsigned long nextid = 0;
 
     sds lowername = sdsnew(cmdname);
@@ -1047,7 +1047,7 @@ unsigned long ACLGetCommandID(const char *cmdname) {
 /* Return an username by its name, or NULL if the user does not exist. */
 user *ACLGetUserByName(const char *name, size_t namelen) {
     void *myuser = raxFind(Users,(unsigned char*)name,namelen);
-    if (myuser == raxNotFound) return NULL;
+    if (myuser == raxNotFound) return nullptr;
     return (user*)myuser;
 }
 
@@ -1178,7 +1178,7 @@ int ACLAppendUserForLoading(sds *argv, int argc, int *argc_err) {
     /* Rules look valid, let's append the user to the list. */
     sds *copy = (sds*)zmalloc(sizeof(sds)*argc, MALLOC_LOCAL);
     for (int j = 1; j < argc; j++) copy[j-1] = sdsdup(argv[j]);
-    copy[argc-1] = NULL;
+    copy[argc-1] = nullptr;
     listAddNodeTail(UsersToLoad,copy);
     ACLFreeUser(fakeuser);
     return C_OK;
@@ -1393,7 +1393,7 @@ sds ACLLoadFromFile(const char *filename) {
         raxRemove(old_users,(unsigned char*)"default",7,NULL);
         ACLFreeUsersSet(old_users);
         sdsfree(errors);
-        return NULL;
+        return nullptr;
     } else {
         ACLFreeUsersSet(Users);
         Users = old_users;
@@ -1408,7 +1408,7 @@ sds ACLLoadFromFile(const char *filename) {
 int ACLSaveToFile(const char *filename) {
     sds acl = sdsempty();
     int fd = -1;
-    sds tmpfilename = NULL;
+    sds tmpfilename = nullptr;
     int retval = C_ERR;
 
     /* Let's generate an SDS string containing the new version of the
@@ -1455,7 +1455,7 @@ int ACLSaveToFile(const char *filename) {
             strerror(errno));
         goto cleanup;
     }
-    sdsfree(tmpfilename); tmpfilename = NULL;
+    sdsfree(tmpfilename); tmpfilename = nullptr;
     retval = C_OK; /* If we reached this point, everything is fine. */
 
 cleanup:
@@ -1587,7 +1587,7 @@ void addACLLogEntry(client *c, int reason, int keypos, sds username) {
     listIter li;
     listNode *ln;
     listRewind(ACLLog,&li);
-    ACLLogEntry *match = NULL;
+    ACLLogEntry *match = nullptr;
     while (toscan-- && (ln = listNext(&li)) != NULL) {
         ACLLogEntry *current = (ACLLogEntry*)listNodeValue(ln);
         if (ACLLogMatchEntry(current,le)) {
@@ -1609,7 +1609,7 @@ void addACLLogEntry(client *c, int reason, int keypos, sds username) {
         match->count++;
 
         /* Release the old entry. */
-        le->cinfo = NULL;
+        le->cinfo = nullptr;
         ACLFreeLogEntry(le);
     } else {
         /* Add it to our list of entires. We'll have to trim the list

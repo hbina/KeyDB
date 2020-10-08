@@ -96,7 +96,7 @@ void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire,
 /* SET key value [NX] [XX] [KEEPTTL] [EX <seconds>] [PX <milliseconds>] */
 void setCommand(client *c) {
     int j;
-    robj *expire = NULL;
+    robj *expire = nullptr;
     int unit = UNIT_SECONDS;
     int flags = OBJ_SET_NO_FLAGS;
 
@@ -501,15 +501,15 @@ void stralgoCommand(client *c) {
 void stralgoLCS(client *c) {
     uint32_t i, j;
     long long minmatchlen = 0;
-    const char *a = NULL;
-    const char *b = NULL;
+    const char *a = nullptr;
+    const char *b = nullptr;
     int getlen = 0, getidx = 0, withmatchlen = 0;
     robj_roptr obja, objb;
     uint32_t arraylen = 0;  /* Number of ranges emitted in the array. */
     uint32_t alen, blen, *lcs, idx;
     int computelcs;
-    sds result = NULL;        /* Resulting LCS string. */
-    void *arraylenptr = NULL; /* Deffered length of the array for IDX. */
+    sds result = nullptr;        /* Resulting LCS string. */
+    void *arraylenptr = nullptr; /* Deffered length of the array for IDX. */
     uint32_t arange_start, arange_end, brange_start = 0, brange_end = 0;
 
     for (j = 2; j < (uint32_t)c->argc; j++) {
@@ -549,8 +549,8 @@ void stralgoLCS(client *c) {
                     "The specified keys must contain string values");
                 /* Don't cleanup the objects, we need to do that
                  * only after callign getDecodedObject(). */
-                obja = NULL;
-                objb = NULL;
+                obja = nullptr;
+                objb = nullptr;
                 goto cleanup;
             }
             obja = obja ? getDecodedObject(obja) : createStringObject("",0);
@@ -702,7 +702,7 @@ void stralgoLCS(client *c) {
         addReplyLongLong(c,LCS(alen,blen));
     } else {
         addReplyBulkSds(c,result);
-        result = NULL;
+        result = nullptr;
     }
 
     /* Cleanup. */

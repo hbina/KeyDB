@@ -120,12 +120,12 @@ static int connSocketConnect(connection *conn, const char *addr, int port, const
 
 /* Returns true if a write handler is registered */
 int connHasWriteHandler(connection *conn) {
-    return conn->write_handler != NULL;
+    return conn->write_handler != nullptr;
 }
 
 /* Returns true if a read handler is registered */
 int connHasReadHandler(connection *conn) {
-    return conn->read_handler != NULL;
+    return conn->read_handler != nullptr;
 }
 
 /* Associate a private data pointer with the connection */
@@ -270,7 +270,7 @@ static void connSocketEventHandler(struct aeEventLoop *el, int fd, void *clientD
         if (!conn->write_handler) aeDeleteFileEvent(serverTL->el,conn->fd,AE_WRITABLE);
 
         if (!callHandler(conn, conn->conn_handler)) return;
-        conn->conn_handler = NULL;
+        conn->conn_handler = nullptr;
     }
 
     /* Normally we execute the readable event first, and the writable

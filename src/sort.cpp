@@ -61,7 +61,7 @@ redisSortOperation *createSortOperation(int type, robj *pattern) {
 robj *lookupKeyByPattern(redisDb *db, robj *pattern, robj *subst, int writeflag) {
     char *p, *f, *k;
     sds spat, ssub;
-    robj *keyobj, *fieldobj = NULL;
+    robj *keyobj, *fieldobj = nullptr;
     robj_roptr o;
     int prefixlen, sublen, postfixlen, fieldlen;
 
@@ -84,7 +84,7 @@ robj *lookupKeyByPattern(redisDb *db, robj *pattern, robj *subst, int writeflag)
     p = strchr(spat,'*');
     if (!p) {
         decrRefCount(subst);
-        return NULL;
+        return nullptr;
     }
 
     /* Find out if we're dealing with a hash dereference. */
@@ -133,7 +133,7 @@ robj *lookupKeyByPattern(redisDb *db, robj *pattern, robj *subst, int writeflag)
 noobj:
     decrRefCount(keyobj);
     if (fieldlen) decrRefCount(fieldobj);
-    return NULL;
+    return nullptr;
 }
 
 /* sortCompare() is used by qsort in sortCommand(). Given that qsort_r with
@@ -199,7 +199,7 @@ void sortCommand(client *c) {
     int getop = 0; /* GET operation counter */
     int int_conversion_error = 0;
     int syntax_error = 0;
-    robj *sortval, *sortby = NULL, *storekey = NULL;
+    robj *sortval, *sortby = NULL, *storekey = nullptr;
     redisSortObject *vector; /* Resulting vector to sort */
 
     /* Create a list of operations to perform for every sorted element.
@@ -306,7 +306,7 @@ void sortCommand(client *c) {
         /* Force ALPHA sorting */
         dontsort = 0;
         alpha = 1;
-        sortby = NULL;
+        sortby = nullptr;
     }
 
     /* Destructively convert encoded sorted sets for SORT. */
@@ -368,7 +368,7 @@ void sortCommand(client *c) {
             while(j < vectorlen && listTypeNext(li,&entry)) {
                 vector[j].obj = listTypeGet(&entry);
                 vector[j].u.score = 0;
-                vector[j].u.cmpobj = NULL;
+                vector[j].u.cmpobj = nullptr;
                 j++;
             }
             listTypeReleaseIterator(li);
@@ -382,7 +382,7 @@ void sortCommand(client *c) {
         while(listTypeNext(li,&entry)) {
             vector[j].obj = listTypeGet(&entry);
             vector[j].u.score = 0;
-            vector[j].u.cmpobj = NULL;
+            vector[j].u.cmpobj = nullptr;
             j++;
         }
         listTypeReleaseIterator(li);
@@ -392,7 +392,7 @@ void sortCommand(client *c) {
         while((sdsele = setTypeNextObject(si)) != NULL) {
             vector[j].obj = createObject(OBJ_STRING,sdsele);
             vector[j].u.score = 0;
-            vector[j].u.cmpobj = NULL;
+            vector[j].u.cmpobj = nullptr;
             j++;
         }
         setTypeReleaseIterator(si);
@@ -428,7 +428,7 @@ void sortCommand(client *c) {
             sdsele = ln->ele;
             vector[j].obj = createStringObject(sdsele,sdslen(sdsele));
             vector[j].u.score = 0;
-            vector[j].u.cmpobj = NULL;
+            vector[j].u.cmpobj = nullptr;
             j++;
             ln = desc ? ln->backward : ln->level(0)->forward;
         }
@@ -445,7 +445,7 @@ void sortCommand(client *c) {
             sdsele = (sds)dictGetKey(setele);
             vector[j].obj = createStringObject(sdsele,sdslen(sdsele));
             vector[j].u.score = 0;
-            vector[j].u.cmpobj = NULL;
+            vector[j].u.cmpobj = nullptr;
             j++;
         }
         dictReleaseIterator(di);

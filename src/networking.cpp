@@ -119,7 +119,7 @@ client *createClient(connection *conn, int iel) {
     c->id = client_id;
     c->resp = 2;
     c->conn = conn;
-    c->name = NULL;
+    c->name = nullptr;
     c->bufpos = 0;
     c->qb_pos = 0;
     c->querybuf = sdsempty();
@@ -127,8 +127,8 @@ client *createClient(connection *conn, int iel) {
     c->querybuf_peak = 0;
     c->reqtype = 0;
     c->argc = 0;
-    c->argv = NULL;
-    c->cmd = c->lastcmd = NULL;
+    c->argv = nullptr;
+    c->cmd = c->lastcmd = nullptr;
     c->puser = DefaultUser;
     c->multibulklen = 0;
     c->bulklen = -1;
@@ -160,9 +160,9 @@ client *createClient(connection *conn, int iel) {
     c->btype = BLOCKED_NONE;
     c->bpop.timeout = 0;
     c->bpop.keys = dictCreate(&objectKeyHeapPointerValueDictType,NULL);
-    c->bpop.target = NULL;
-    c->bpop.xread_group = NULL;
-    c->bpop.xread_consumer = NULL;
+    c->bpop.target = nullptr;
+    c->bpop.xread_group = nullptr;
+    c->bpop.xread_consumer = nullptr;
     c->bpop.xread_group_noack = 0;
     c->bpop.numreplicas = 0;
     c->bpop.reploffset = 0;
@@ -170,9 +170,9 @@ client *createClient(connection *conn, int iel) {
     c->watched_keys = listCreate();
     c->pubsub_channels = dictCreate(&objectKeyPointerValueDictType,NULL);
     c->pubsub_patterns = listCreate();
-    c->peerid = NULL;
-    c->client_list_node = NULL;
-    c->bufAsync = NULL;
+    c->peerid = nullptr;
+    c->client_list_node = nullptr;
+    c->bufAsync = nullptr;
     c->buflenAsync = 0;
     c->bufposAsync = 0;
     c->client_tracking_redirection = 0;
@@ -180,12 +180,12 @@ client *createClient(connection *conn, int iel) {
     c->master_error = 0;
     memset(c->uuid, 0, UUID_BINARY_LEN);
 
-    c->client_tracking_prefixes = NULL;
+    c->client_tracking_prefixes = nullptr;
     c->client_cron_last_memory_usage = 0;
     c->client_cron_last_memory_type = CLIENT_TYPE_NORMAL;
-    c->auth_callback = NULL;
-    c->auth_callback_privdata = NULL;
-    c->auth_module = NULL;
+    c->auth_callback = nullptr;
+    c->auth_callback_privdata = nullptr;
+    c->auth_module = nullptr;
     listSetFreeMethod(c->pubsub_patterns,decrRefCountVoid);
     listSetMatchMethod(c->pubsub_patterns,listMatchObjects);
     if (conn) linkClient(c);
@@ -594,7 +594,7 @@ void addReplyStatusFormat(client *c, const char *fmt, ...) {
  * at the end of the last reply node which we won't use anymore. */
 void trimReplyUnusedTailSpace(client *c) {
     listNode *ln = listLast(c->reply);
-    clientReplyBlock *tail = ln? (clientReplyBlock*)listNodeValue(ln): NULL;
+    clientReplyBlock *tail = ln? (clientReplyBlock*)listNodeValue(ln): nullptr;
 
     /* Note that 'tail' may be NULL even if we have a tail node, becuase when
      * addReplyDeferredLen() is used */
@@ -623,7 +623,7 @@ void *addReplyDeferredLen(client *c) {
     /* Note that we install the write event here even if the object is not
      * ready to be sent, since we are sure that before returning to the
      * event loop setDeferredAggregateLen() will be called. */
-    if (prepareClientToWrite(c, false) != C_OK) return NULL;
+    if (prepareClientToWrite(c, false) != C_OK) return nullptr;
     trimReplyUnusedTailSpace(c);
     listAddNodeTail(c->reply,NULL); /* NULL is our placeholder. */
     return listLast(c->reply);
@@ -1417,7 +1417,7 @@ static void freeClientArgv(client *c) {
     for (j = 0; j < c->argc; j++)
         decrRefCount(c->argv[j]);
     c->argc = 0;
-    c->cmd = NULL;
+    c->cmd = nullptr;
 }
 
 void disconnectSlavesExcept(unsigned char *uuid)
@@ -1451,7 +1451,7 @@ void unlinkClient(client *c) {
     serverAssert(c->conn == nullptr || c->lock.fOwnLock());
 
     /* If this is marked as current client unset it. */
-    if (serverTL && serverTL->current_client == c) serverTL->current_client = NULL;
+    if (serverTL && serverTL->current_client == c) serverTL->current_client = nullptr;
 
     /* Certain operations must be done only if the client has an active connection.
      * If the client was already unlinked or if it's a "fake client" the
@@ -1462,7 +1462,7 @@ void unlinkClient(client *c) {
             uint64_t id = htonu64(c->id);
             raxRemove(g_pserver->clients_index,(unsigned char*)&id,sizeof(id),NULL);
             listDelNode(g_pserver->clients,c->client_list_node);
-            c->client_list_node = NULL;
+            c->client_list_node = nullptr;
         }
 
         /* Check if this is a replica waiting for diskless replication (rdb pipe),
@@ -1475,13 +1475,13 @@ void unlinkClient(client *c) {
             for (i=0; i < g_pserver->rdb_pipe_numconns; i++) {
                 if (g_pserver->rdb_pipe_conns[i] == c->conn) {
                     rdbPipeWriteHandlerConnRemoved(c->conn);
-                    g_pserver->rdb_pipe_conns[i] = NULL;
+                    g_pserver->rdb_pipe_conns[i] = nullptr;
                     break;
                 }
             }
         }
         connClose(c->conn);
-        c->conn = NULL;
+        c->conn = nullptr;
         atomicDecr(g_pserver->rgthreadvar[c->iel].cclients, 1);
     }
 
@@ -1505,7 +1505,7 @@ void unlinkClient(client *c) {
     }
 
     if (c->fPendingAsyncWrite) {
-        ln = NULL;
+        ln = nullptr;
         bool fFound = false;
         for (int iel = 0; iel < cserver.cthreads; ++iel)
         {
@@ -1580,7 +1580,7 @@ bool freeClient(client *c) {
     /* Free the query buffer */
     sdsfree(c->querybuf);
     sdsfree(c->pending_querybuf);
-    c->querybuf = NULL;
+    c->querybuf = nullptr;
 
     /* Deallocate structures used to block on blocking ops. */
     if (c->flags & CLIENT_BLOCKED) unblockClient(c);
@@ -1983,7 +1983,7 @@ int handleClientsWithPendingWrites(int iel, int aof_state) {
 
 /* resetClient prepare the client to process the next command */
 void resetClient(client *c) {
-    redisCommandProc *prevcmd = c->cmd ? c->cmd->proc : NULL;
+    redisCommandProc *prevcmd = c->cmd ? c->cmd->proc : nullptr;
 
     freeClientArgv(c);
     c->reqtype = 0;
@@ -2163,7 +2163,7 @@ static void setProtocolError(const char *errstr, client *c) {
  * command is in RESP format, so the first byte in the command is found
  * to be '*'. Otherwise for inline commands processInlineBuffer() is called. */
 int processMultibulkBuffer(client *c) {
-    char *newline = NULL;
+    char *newline = nullptr;
     int ok;
     long long ll;
 
@@ -2358,7 +2358,7 @@ int processCommandAndResetClient(client *c, int flags) {
         commandProcessed(c, flags);
     }
     if (serverTL->current_client == NULL) deadclient = 1;
-    serverTL->current_client = NULL;
+    serverTL->current_client = nullptr;
     /* freeMemoryIfNeeded may flush replica output buffers. This may
      * result into a replica, that may be the active client, to be
      * freed. */
@@ -2674,7 +2674,7 @@ int clientSetNameOrReply(client *c, robj *name) {
      * the current name. */
     if (len == 0) {
         if (c->name) decrRefCount(c->name);
-        c->name = NULL;
+        c->name = nullptr;
         return C_OK;
     }
 
@@ -2758,8 +2758,8 @@ NULL
     } else if (!strcasecmp((const char*)ptrFromObj(c->argv[1]),"kill")) {
         /* CLIENT KILL <ip:port>
          * CLIENT KILL <option> [value] ... <option> [value] */
-        char *addr = NULL;
-        user *user = NULL;
+        char *addr = nullptr;
+        user *user = nullptr;
         int type = -1;
         uint64_t id = 0;
         int skipme = 1;
@@ -2918,7 +2918,7 @@ NULL
          *                          [PREFIX second] [OPTIN] [OPTOUT] ... */
         long long redir = 0;
         uint64_t options = 0;
-        robj **prefix = NULL;
+        robj **prefix = nullptr;
         size_t numprefix = 0;
 
         /* Parse the options. */
@@ -3219,7 +3219,7 @@ void rewriteClientCommandArgument(client *c, int i, robj *newval) {
     if (i >= c->argc) {
         c->argv = (robj**)zrealloc(c->argv,sizeof(robj*)*(i+1), MALLOC_LOCAL);
         c->argc = i+1;
-        c->argv[i] = NULL;
+        c->argv[i] = nullptr;
     }
     oldval = c->argv[i];
     c->argv[i] = newval;
@@ -3278,7 +3278,7 @@ const char *getClientTypeName(int clientType) {
     case CLIENT_TYPE_SLAVE:  return "slave";
     case CLIENT_TYPE_PUBSUB: return "pubsub";
     case CLIENT_TYPE_MASTER: return "master";
-    default:                       return NULL;
+    default:                       return nullptr;
     }
 }
 

@@ -107,7 +107,7 @@ int setTypeRemove(robj *setobj, const char *value) {
 int setTypeIsMember(robj_roptr subject, const char *value) {
     long long llval;
     if (subject->encoding == OBJ_ENCODING_HT) {
-        return dictFind((dict*)subject->m_ptr,value) != NULL;
+        return dictFind((dict*)subject->m_ptr,value) != nullptr;
     } else if (subject->encoding == OBJ_ENCODING_INTSET) {
         if (isSdsRepresentableAsLongLong(value,&llval) == C_OK) {
             return intsetFind((intset*)subject->m_ptr,llval);
@@ -160,7 +160,7 @@ int setTypeNext(setTypeIterator *si, const char **sdsele, int64_t *llele) {
     } else if (si->encoding == OBJ_ENCODING_INTSET) {
         if (!intsetGet((intset*)si->subject->m_ptr,si->ii++,llele))
             return -1;
-        *sdsele = NULL; /* Not needed. Defensive. */
+        *sdsele = nullptr; /* Not needed. Defensive. */
     } else {
         serverPanic("Wrong set encoding in setTypeNext");
     }
@@ -181,7 +181,7 @@ sds setTypeNextObject(setTypeIterator *si) {
 
     encoding = setTypeNext(si,&sdsele,&intele);
     switch(encoding) {
-        case -1:    return NULL;
+        case -1:    return nullptr;
         case OBJ_ENCODING_INTSET:
             return sdsfromlonglong(intele);
         case OBJ_ENCODING_HT:
@@ -189,7 +189,7 @@ sds setTypeNextObject(setTypeIterator *si) {
         default:
             serverPanic("Unsupported encoding");
     }
-    return NULL; /* just to suppress warnings */
+    return nullptr; /* just to suppress warnings */
 }
 
 /* Return random element from a non empty set.
@@ -212,7 +212,7 @@ int setTypeRandomElement(robj *setobj, sds *sdsele, int64_t *llele) {
         *llele = -123456789; /* Not needed. Defensive. */
     } else if (setobj->encoding == OBJ_ENCODING_INTSET) {
         *llele = intsetRandom((intset*)setobj->m_ptr);
-        *sdsele = NULL; /* Not needed. Defensive. */
+        *sdsele = nullptr; /* Not needed. Defensive. */
     } else {
         serverPanic("Unknown set encoding");
     }
@@ -505,7 +505,7 @@ void spopWithCountCommand(client *c) {
      * creating a new set as we do this (that will be stored as the original
      * set). Then we return the elements left in the original set and
      * release it. */
-        robj *newset = NULL;
+        robj *newset = nullptr;
 
         /* Create a new set with just the remaining elements. */
         while(remaining--) {
@@ -798,10 +798,10 @@ void sinterGenericCommand(client *c, robj **setkeys,
                           unsigned long setnum, robj *dstkey) {
     robj **sets = (robj**)zmalloc(sizeof(robj*)*setnum, MALLOC_SHARED);
     setTypeIterator *si;
-    robj *dstset = NULL;
+    robj *dstset = nullptr;
     const char *elesds;
     int64_t intobj;
-    void *replylen = NULL;
+    void *replylen = nullptr;
     unsigned long j, cardinality = 0;
     int encoding;
 
@@ -937,7 +937,7 @@ void sunionDiffGenericCommand(client *c, robj **setkeys, int setnum,
                               robj *dstkey, int op) {
     robj **sets = (robj**)zmalloc(sizeof(robj*)*setnum, MALLOC_SHARED);
     setTypeIterator *si;
-    robj *dstset = NULL;
+    robj *dstset = nullptr;
     sds ele;
     int j, cardinality = 0;
     int diff_algo = 1;
@@ -947,7 +947,7 @@ void sunionDiffGenericCommand(client *c, robj **setkeys, int setnum,
             lookupKeyWrite(c->db,setkeys[j]) :
             lookupKeyRead(c->db,setkeys[j]).unsafe_robjcast();
         if (!setobj) {
-            sets[j] = NULL;
+            sets[j] = nullptr;
             continue;
         }
         if (checkType(c,setobj,OBJ_SET)) {

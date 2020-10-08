@@ -86,11 +86,11 @@ zskiplist *zslCreate(void) {
     zsl->length = 0;
     zsl->header = zslCreateNode(ZSKIPLIST_MAXLEVEL,0,NULL);
     for (j = 0; j < ZSKIPLIST_MAXLEVEL; j++) {
-        zsl->header->level(j)->forward = NULL;
+        zsl->header->level(j)->forward = nullptr;
         zsl->header->level(j)->span = 0;
     }
-    zsl->header->backward = NULL;
-    zsl->tail = NULL;
+    zsl->header->backward = nullptr;
+    zsl->tail = nullptr;
     return zsl;
 }
 
@@ -295,7 +295,7 @@ zskiplistNode *zslUpdateScore(zskiplist *zsl, double curscore, sds ele, double n
     zskiplistNode *newnode = zslInsert(zsl,newscore,x->ele);
     /* We reused the old node x->ele SDS string, free the node now
      * since zslInsert created a new one. */
-    x->ele = NULL;
+    x->ele = nullptr;
     zslFreeNode(x);
     return newnode;
 }
@@ -332,7 +332,7 @@ zskiplistNode *zslFirstInRange(zskiplist *zsl, zrangespec *range) {
     int i;
 
     /* If everything is out of range, return early. */
-    if (!zslIsInRange(zsl,range)) return NULL;
+    if (!zslIsInRange(zsl,range)) return nullptr;
 
     x = zsl->header;
     for (i = zsl->level-1; i >= 0; i--) {
@@ -347,7 +347,7 @@ zskiplistNode *zslFirstInRange(zskiplist *zsl, zrangespec *range) {
     serverAssert(x != NULL);
 
     /* Check if score <= max. */
-    if (!zslValueLteMax(x->score,range)) return NULL;
+    if (!zslValueLteMax(x->score,range)) return nullptr;
     return x;
 }
 
@@ -358,7 +358,7 @@ zskiplistNode *zslLastInRange(zskiplist *zsl, zrangespec *range) {
     int i;
 
     /* If everything is out of range, return early. */
-    if (!zslIsInRange(zsl,range)) return NULL;
+    if (!zslIsInRange(zsl,range)) return nullptr;
 
     x = zsl->header;
     for (i = zsl->level-1; i >= 0; i--) {
@@ -372,7 +372,7 @@ zskiplistNode *zslLastInRange(zskiplist *zsl, zrangespec *range) {
     serverAssert(x != NULL);
 
     /* Check if score >= min. */
-    if (!zslValueGteMin(x->score,range)) return NULL;
+    if (!zslValueGteMin(x->score,range)) return nullptr;
     return x;
 }
 
@@ -514,7 +514,7 @@ zskiplistNode* zslGetElementByRank(zskiplist *zsl, unsigned long rank) {
             return x;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 /* Populate the rangespec according to the objects min and max. */
@@ -616,7 +616,7 @@ int zslParseLexRange(robj *min, robj *max, zlexrangespec *spec) {
     if (min->encoding == OBJ_ENCODING_INT ||
         max->encoding == OBJ_ENCODING_INT) return C_ERR;
 
-    spec->min = spec->max = NULL;
+    spec->min = spec->max = nullptr;
     if (zslParseLexRangeItem(min, &spec->min, &spec->minex) == C_ERR ||
         zslParseLexRangeItem(max, &spec->max, &spec->maxex) == C_ERR) {
         zslFreeLexRange(spec);
@@ -672,7 +672,7 @@ zskiplistNode *zslFirstInLexRange(zskiplist *zsl, zlexrangespec *range) {
     int i;
 
     /* If everything is out of range, return early. */
-    if (!zslIsInLexRange(zsl,range)) return NULL;
+    if (!zslIsInLexRange(zsl,range)) return nullptr;
 
     x = zsl->header;
     for (i = zsl->level-1; i >= 0; i--) {
@@ -687,7 +687,7 @@ zskiplistNode *zslFirstInLexRange(zskiplist *zsl, zlexrangespec *range) {
     serverAssert(x != NULL);
 
     /* Check if score <= max. */
-    if (!zslLexValueLteMax(x->ele,range)) return NULL;
+    if (!zslLexValueLteMax(x->ele,range)) return nullptr;
     return x;
 }
 
@@ -698,7 +698,7 @@ zskiplistNode *zslLastInLexRange(zskiplist *zsl, zlexrangespec *range) {
     int i;
 
     /* If everything is out of range, return early. */
-    if (!zslIsInLexRange(zsl,range)) return NULL;
+    if (!zslIsInLexRange(zsl,range)) return nullptr;
 
     x = zsl->header;
     for (i = zsl->level-1; i >= 0; i--) {
@@ -712,7 +712,7 @@ zskiplistNode *zslLastInLexRange(zskiplist *zsl, zlexrangespec *range) {
     serverAssert(x != NULL);
 
     /* Check if score >= min. */
-    if (!zslLexValueGteMin(x->ele,range)) return NULL;
+    if (!zslLexValueGteMin(x->ele,range)) return nullptr;
     return x;
 }
 
@@ -794,7 +794,7 @@ void zzlNext(unsigned char *zl, unsigned char **eptr, unsigned char **sptr) {
         serverAssert(_sptr != NULL);
     } else {
         /* No next entry. */
-        _sptr = NULL;
+        _sptr = nullptr;
     }
 
     *eptr = _eptr;
@@ -813,7 +813,7 @@ void zzlPrev(unsigned char *zl, unsigned char **eptr, unsigned char **sptr) {
         serverAssert(_eptr != NULL);
     } else {
         /* No previous entry. */
-        _eptr = NULL;
+        _eptr = nullptr;
     }
 
     *eptr = _eptr;
@@ -853,7 +853,7 @@ unsigned char *zzlFirstInRange(unsigned char *zl, zrangespec *range) {
     double score;
 
     /* If everything is out of range, return early. */
-    if (!zzlIsInRange(zl,range)) return NULL;
+    if (!zzlIsInRange(zl,range)) return nullptr;
 
     while (eptr != NULL) {
         sptr = ziplistNext(zl,eptr);
@@ -864,14 +864,14 @@ unsigned char *zzlFirstInRange(unsigned char *zl, zrangespec *range) {
             /* Check if score <= max. */
             if (zslValueLteMax(score,range))
                 return eptr;
-            return NULL;
+            return nullptr;
         }
 
         /* Move to next element. */
         eptr = ziplistNext(zl,sptr);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 /* Find pointer to the last element contained in the specified range.
@@ -881,7 +881,7 @@ unsigned char *zzlLastInRange(unsigned char *zl, zrangespec *range) {
     double score;
 
     /* If everything is out of range, return early. */
-    if (!zzlIsInRange(zl,range)) return NULL;
+    if (!zzlIsInRange(zl,range)) return nullptr;
 
     while (eptr != NULL) {
         sptr = ziplistNext(zl,eptr);
@@ -892,7 +892,7 @@ unsigned char *zzlLastInRange(unsigned char *zl, zrangespec *range) {
             /* Check if score >= min. */
             if (zslValueGteMin(score,range))
                 return eptr;
-            return NULL;
+            return nullptr;
         }
 
         /* Move to previous element by moving to the score of previous element.
@@ -901,10 +901,10 @@ unsigned char *zzlLastInRange(unsigned char *zl, zrangespec *range) {
         if (sptr != NULL)
             serverAssert((eptr = ziplistPrev(zl,sptr)) != NULL);
         else
-            eptr = NULL;
+            eptr = nullptr;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 int zzlLexValueGteMin(unsigned char *p, zlexrangespec *spec) {
@@ -950,14 +950,14 @@ unsigned char *zzlFirstInLexRange(unsigned char *zl, zlexrangespec *range) {
     unsigned char *eptr = ziplistIndex(zl,0), *sptr;
 
     /* If everything is out of range, return early. */
-    if (!zzlIsInLexRange(zl,range)) return NULL;
+    if (!zzlIsInLexRange(zl,range)) return nullptr;
 
     while (eptr != NULL) {
         if (zzlLexValueGteMin(eptr,range)) {
             /* Check if score <= max. */
             if (zzlLexValueLteMax(eptr,range))
                 return eptr;
-            return NULL;
+            return nullptr;
         }
 
         /* Move to next element. */
@@ -966,7 +966,7 @@ unsigned char *zzlFirstInLexRange(unsigned char *zl, zlexrangespec *range) {
         eptr = ziplistNext(zl,sptr); /* Next element. */
     }
 
-    return NULL;
+    return nullptr;
 }
 
 /* Find pointer to the last element contained in the specified lex range.
@@ -975,14 +975,14 @@ unsigned char *zzlLastInLexRange(unsigned char *zl, zlexrangespec *range) {
     unsigned char *eptr = ziplistIndex(zl,-2), *sptr;
 
     /* If everything is out of range, return early. */
-    if (!zzlIsInLexRange(zl,range)) return NULL;
+    if (!zzlIsInLexRange(zl,range)) return nullptr;
 
     while (eptr != NULL) {
         if (zzlLexValueLteMax(eptr,range)) {
             /* Check if score >= min. */
             if (zzlLexValueGteMin(eptr,range))
                 return eptr;
-            return NULL;
+            return nullptr;
         }
 
         /* Move to previous element by moving to the score of previous element.
@@ -991,10 +991,10 @@ unsigned char *zzlLastInLexRange(unsigned char *zl, zlexrangespec *range) {
         if (sptr != NULL)
             serverAssert((eptr = ziplistPrev(zl,sptr)) != NULL);
         else
-            eptr = NULL;
+            eptr = nullptr;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 unsigned char *zzlFind(unsigned char *zl, sds ele, double *score) {
@@ -1013,7 +1013,7 @@ unsigned char *zzlFind(unsigned char *zl, sds ele, double *score) {
         /* Move to next element. */
         eptr = ziplistNext(zl,sptr);
     }
-    return NULL;
+    return nullptr;
 }
 
 /* Delete (element,score) pair from ziplist. Use local copy of eptr because we
@@ -1535,7 +1535,7 @@ void zaddGenericCommand(client *c, int flags) {
     robj *key = c->argv[1];
     robj *zobj;
     sds ele;
-    double score = 0, *scores = NULL;
+    double score = 0, *scores = nullptr;
     int j, elements;
     int scoreidx = 0;
     /* The following vars are used in order to track what the command actually
@@ -2052,7 +2052,7 @@ sds zuiNewSdsFromValue(zsetopval *val) {
         /* We have already one to return! */
         sds ele = val->ele;
         val->flags &= ~OPVAL_DIRTY_SDS;
-        val->ele = NULL;
+        val->ele = nullptr;
         return ele;
     } else if (val->ele) {
         return sdsdup(val->ele);
@@ -2217,7 +2217,7 @@ void zunionInterGenericCommand(client *c, robj *dstkey, int op) {
             src[i].type = obj->type;
             src[i].encoding = obj->encoding;
         } else {
-            src[i].subject = NULL;
+            src[i].subject = nullptr;
         }
 
         /* Default all weights to 1. */
@@ -2531,7 +2531,7 @@ void genericZrangebyscoreCommand(client *c, int reverse) {
     long offset = 0, limit = -1;
     int withscores = 0;
     unsigned long rangelen = 0;
-    void *replylen = NULL;
+    void *replylen = nullptr;
     int minidx, maxidx;
 
     /* Parse the range arguments. */
@@ -2880,7 +2880,7 @@ void genericZrangebylexCommand(client *c, int reverse) {
     robj_roptr zobj;
     long offset = 0, limit = -1;
     unsigned long rangelen = 0;
-    void *replylen = NULL;
+    void *replylen = nullptr;
     int minidx, maxidx;
 
     /* Parse the range arguments. */
@@ -3133,8 +3133,8 @@ void zscanCommand(client *c) {
  * use the 'count' argument to return multiple items if available. */
 void genericZpopCommand(client *c, robj **keyv, int keyc, int where, int emitkey, robj *countarg) {
     int idx;
-    robj *key = NULL;
-    robj *zobj = NULL;
+    robj *key = nullptr;
+    robj *zobj = nullptr;
     sds ele;
     double score;
     long count = 1;

@@ -271,7 +271,7 @@ void xorObjectDigest(redisDb *db, robj_roptr keyobj, unsigned char *digest, robj
  * a different digest. */
 void computeDatasetDigest(unsigned char *final) {
     unsigned char digest[20];
-    dictIterator *di = NULL;
+    dictIterator *di = nullptr;
     dictEntry *de;
     int j;
     uint32_t aux;
@@ -774,7 +774,7 @@ NULL
         sdsfree(stats);
     } else if (!strcasecmp(szFromObj(c->argv[1]),"htstats-key") && c->argc == 3) {
         robj *o;
-        dict *ht = NULL;
+        dict *ht = nullptr;
 
         if ((o = objectCommandLookupOrReply(c,c->argv[2],shared.nokeyerr))
                 == NULL) return;
@@ -1004,7 +1004,7 @@ static void *getMcontextEip(ucontext_t *uc) {
 #elif defined(__DragonFly__)
     return (void*) uc->uc_mcontext.mc_rip;
 #else
-    return NULL;
+    return nullptr;
 #endif
 }
 

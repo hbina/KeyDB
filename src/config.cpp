@@ -239,7 +239,7 @@ const char *configEnumGetName(configEnum *ce, int val) {
         if (ce->val == val) return ce->name;
         ce++;
     }
-    return NULL;
+    return nullptr;
 }
 
 /* Wrapper for configEnumGetName() returning "unknown" instead of NULL if
@@ -280,7 +280,7 @@ void appendServerSaveParams(time_t seconds, int changes) {
 
 void resetServerSaveParams(void) {
     zfree(g_pserver->saveparams);
-    g_pserver->saveparams = NULL;
+    g_pserver->saveparams = nullptr;
     g_pserver->saveparamslen = 0;
 }
 
@@ -352,13 +352,13 @@ static int updateOOMScoreAdjValues(sds *args, const char **err) {
 }
 
 void initConfigValues() {
-    for (standardConfig *config = configs; config->name != NULL; config++) {
+    for (standardConfig *config = configs; config->name != nullptr; config++) {
         config->interface.init(config->data);
     }
 }
 
 void loadServerConfigFromString(char *config) {
-    const char *err = NULL;
+    const char *err = nullptr;
     int linenum = 0, totlines, i;
     int slaveof_linenum = 0;
     sds *lines;
@@ -391,7 +391,7 @@ void loadServerConfigFromString(char *config) {
 
         /* Iterate the configs that are standard */
         int match = 0;
-        for (standardConfig *config = configs; config->name != NULL; config++) {
+        for (standardConfig *config = configs; config->name != nullptr; config++) {
             if ((!strcasecmp(argv[0],config->name) ||
                 (config->alias && !strcasecmp(argv[0],config->alias))))
             {
@@ -723,13 +723,13 @@ void configSetCommand(client *c) {
     robj *o;
     long long ll;
     int err;
-    const char *errstr = NULL;
+    const char *errstr = nullptr;
     serverAssertWithInfo(c,c->argv[2],sdsEncodedObject(c->argv[2]));
     serverAssertWithInfo(c,c->argv[3],sdsEncodedObject(c->argv[3]));
     o = c->argv[3];
 
     /* Iterate the configs that are standard */
-    for (standardConfig *config = configs; config->name != NULL; config++) {
+    for (standardConfig *config = configs; config->name != nullptr; config++) {
         if(config->modifiable && (!strcasecmp(szFromObj(c->argv[2]),config->name) ||
             (config->alias && !strcasecmp(szFromObj(c->argv[2]),config->alias))))
         {
@@ -931,7 +931,7 @@ void configGetCommand(client *c) {
     serverAssertWithInfo(c,o,sdsEncodedObject(o));
 
     /* Iterate the configs that are standard */
-    for (standardConfig *config = configs; config->name != NULL; config++) {
+    for (standardConfig *config = configs; config->name != nullptr; config++) {
         if (stringmatch(pattern,config->name,1)) {
             addReplyBulkCString(c,config->name);
             config->interface.get(c,config->data);
@@ -1173,12 +1173,12 @@ struct rewriteConfigState *rewriteConfigReadOldFile(char *path) {
     char buf[CONFIG_MAX_LINE+1];
     int linenum = -1;
 
-    if (fp == NULL && errno != ENOENT) return NULL;
+    if (fp == NULL && errno != ENOENT) return nullptr;
 
     state->option_to_line = dictCreate(&optionToLineDictType,NULL);
     state->rewritten = dictCreate(&optionSetDictType,NULL);
     state->numlines = 0;
-    state->lines = NULL;
+    state->lines = nullptr;
     state->has_tail = 0;
     state->force_all = 0;
     if (fp == NULL) return state;
@@ -1708,7 +1708,7 @@ int rewriteConfig(char *path, int force_all) {
      * the rewrite state. */
 
     /* Iterate the configs that are standard */
-    for (standardConfig *config = configs; config->name != NULL; config++) {
+    for (standardConfig *config = configs; config->name != nullptr; config++) {
         config->interface.rewrite(config->data, config->name, state);
     }
 
@@ -1822,7 +1822,7 @@ constexpr standardConfig createBoolConfig(const char *name, const char *alias, i
 /* String Configs */
 static void stringConfigInit(typeData data) {
     if (data.string.convert_empty_to_null) {
-        *data.string.config = data.string.default_value ? zstrdup(data.string.default_value) : NULL;
+        *data.string.config = data.string.default_value ? zstrdup(data.string.default_value) : nullptr;
     } else {
         *data.string.config = zstrdup(data.string.default_value);
     }
@@ -1833,7 +1833,7 @@ static int stringConfigSet(typeData data, sds value, int update, const char **er
         return 0;
     char *prev = *data.string.config;
     if (data.string.convert_empty_to_null) {
-        *data.string.config = value[0] ? zstrdup(value) : NULL;
+        *data.string.config = value[0] ? zstrdup(value) : nullptr;
     } else {
         *data.string.config = zstrdup(value);
     }

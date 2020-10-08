@@ -49,7 +49,7 @@
 /* This macro is called when RDB read failed (possibly a short read) */
 #define rdbReportReadError(...) rdbReportError(0, __LINE__,__VA_ARGS__)
 
-const char* rdbFileBeingLoaded = NULL; /* used for rdb checking on read error */
+const char* rdbFileBeingLoaded = nullptr; /* used for rdb checking on read error */
 extern int rdbCheckMode;
 void rdbCheckError(const char *fmt, ...);
 void rdbCheckSetError(const char *fmt, ...);
@@ -271,16 +271,16 @@ void *rdbLoadIntegerObject(rio *rdb, int enctype, int flags, size_t *lenptr) {
     long long val;
 
     if (enctype == RDB_ENC_INT8) {
-        if (rioRead(rdb,enc,1) == 0) return NULL;
+        if (rioRead(rdb,enc,1) == 0) return nullptr;
         val = (signed char)enc[0];
     } else if (enctype == RDB_ENC_INT16) {
         uint16_t v;
-        if (rioRead(rdb,enc,2) == 0) return NULL;
+        if (rioRead(rdb,enc,2) == 0) return nullptr;
         v = enc[0]|(enc[1]<<8);
         val = (int16_t)v;
     } else if (enctype == RDB_ENC_INT32) {
         uint32_t v;
-        if (rioRead(rdb,enc,4) == 0) return NULL;
+        if (rioRead(rdb,enc,4) == 0) return nullptr;
         v = enc[0]|(enc[1]<<8)|(enc[2]<<16)|(enc[3]<<24);
         val = (int32_t)v;
     } else {
@@ -370,11 +370,11 @@ void *rdbLoadLzfStringObject(rio *rdb, int flags, size_t *lenptr) {
     int plain = flags & RDB_LOAD_PLAIN;
     int sds = flags & RDB_LOAD_SDS;
     uint64_t len, clen;
-    unsigned char *c = NULL;
-    char *val = NULL;
+    unsigned char *c = nullptr;
+    char *val = nullptr;
 
-    if ((clen = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return NULL;
-    if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return NULL;
+    if ((clen = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return nullptr;
+    if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return nullptr;
     if ((c = (unsigned char*)zmalloc(clen, MALLOC_SHARED)) == NULL) goto err;
 
     /* Allocate our target according to the uncompressed size. */
@@ -403,7 +403,7 @@ err:
         zfree(val);
     else
         sdsfree(val);
-    return NULL;
+    return nullptr;
 }
 
 /* Save a string object as [len][data] on disk. If the object is a string
@@ -506,7 +506,7 @@ void *rdbGenericLoadStringObject(rio *rdb, int flags, size_t *lenptr) {
         }
     }
 
-    if (len == RDB_LENERR) return NULL;
+    if (len == RDB_LENERR) return nullptr;
     if (plain || sds) {
         void *buf = plain ? zmalloc(len, MALLOC_SHARED) : sdsnewlen(SDS_NOINIT,len);
         if (lenptr) *lenptr = len;
@@ -515,7 +515,7 @@ void *rdbGenericLoadStringObject(rio *rdb, int flags, size_t *lenptr) {
                 zfree(buf);
             else
                 sdsfree((char*)buf);
-            return NULL;
+            return nullptr;
         }
         return buf;
     } else {
@@ -523,7 +523,7 @@ void *rdbGenericLoadStringObject(rio *rdb, int flags, size_t *lenptr) {
                            createRawStringObject(SDS_NOINIT,len);
         if (len && rioRead(rdb,ptrFromObj(o),len) == 0) {
             decrRefCount(o);
-            return NULL;
+            return nullptr;
         }
         return o;
     }
@@ -1249,7 +1249,7 @@ ssize_t rdbSaveSingleModuleAux(rio *rdb, int when, moduleType *mt) {
  * integer pointed by 'error' is set to the value of errno just after the I/O
  * error. */
 int rdbSaveRio(rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
-    dictIterator *di = NULL;
+    dictIterator *di = nullptr;
     dictEntry *de;
     char magic[10];
     int j;
@@ -1295,7 +1295,7 @@ int rdbSaveRio(rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
         }
         serverAssert(ckeysExpired == db->setexpire->size());
         dictReleaseIterator(di);
-        di = NULL; /* So that we don't release it again on error. */
+        di = nullptr; /* So that we don't release it again on error. */
     }
 
     /* If we are storing the replication information on disk, persist
@@ -1310,7 +1310,7 @@ int rdbSaveRio(rio *rdb, int *error, int rdbflags, rdbSaveInfo *rsi) {
                 goto werr;
         }
         dictReleaseIterator(di);
-        di = NULL; /* So that we don't release it again on error. */
+        di = nullptr; /* So that we don't release it again on error. */
     }
 
     if (rdbSaveModulesAux(rdb, REDISMODULE_AUX_AFTER_RDB) == -1) goto werr;
@@ -1549,11 +1549,11 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
 
     if (rdbtype == RDB_TYPE_STRING) {
         /* Read string value */
-        if ((o = rdbLoadEncodedStringObject(rdb)) == NULL) return NULL;
+        if ((o = rdbLoadEncodedStringObject(rdb)) == NULL) return nullptr;
         o = tryObjectEncoding(o);
     } else if (rdbtype == RDB_TYPE_LIST) {
         /* Read list value */
-        if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return NULL;
+        if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return nullptr;
 
         o = createQuicklistObject();
         quicklistSetOptions((quicklist*)ptrFromObj(o), g_pserver->list_max_ziplist_size,
@@ -1563,7 +1563,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         while(len--) {
             if ((ele = rdbLoadEncodedStringObject(rdb)) == NULL) {
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             dec = getDecodedObject(ele);
             size_t len = sdslen(szFromObj(dec));
@@ -1573,7 +1573,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         }
     } else if (rdbtype == RDB_TYPE_SET) {
         /* Read Set value */
-        if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return NULL;
+        if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return nullptr;
 
         /* Use a regular set when there are too many entries. */
         if (len > g_pserver->set_max_intset_entries) {
@@ -1593,7 +1593,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
 
             if ((sdsele = (sds)rdbGenericLoadStringObject(rdb,RDB_LOAD_SDS,NULL)) == NULL) {
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
 
             if (o->encoding == OBJ_ENCODING_INTSET) {
@@ -1620,7 +1620,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         size_t maxelelen = 0;
         zset *zs;
 
-        if ((zsetlen = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return NULL;
+        if ((zsetlen = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return nullptr;
         o = createZsetObject();
         zs = (zset*)ptrFromObj(o);
 
@@ -1635,20 +1635,20 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
 
             if ((sdsele = (sds)rdbGenericLoadStringObject(rdb,RDB_LOAD_SDS,NULL)) == NULL) {
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
 
             if (rdbtype == RDB_TYPE_ZSET_2) {
                 if (rdbLoadBinaryDoubleValue(rdb,&score) == -1) {
                     decrRefCount(o);
                     sdsfree(sdsele);
-                    return NULL;
+                    return nullptr;
                 }
             } else {
                 if (rdbLoadDoubleValue(rdb,&score) == -1) {
                     decrRefCount(o);
                     sdsfree(sdsele);
-                    return NULL;
+                    return nullptr;
                 }
             }
 
@@ -1669,7 +1669,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         sds field, value;
 
         len = rdbLoadLen(rdb, NULL);
-        if (len == RDB_LENERR) return NULL;
+        if (len == RDB_LENERR) return nullptr;
 
         o = createHashObject();
 
@@ -1683,12 +1683,12 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
             /* Load raw strings */
             if ((field = (sds)rdbGenericLoadStringObject(rdb,RDB_LOAD_SDS,NULL)) == NULL) {
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             if ((value = (sds)rdbGenericLoadStringObject(rdb,RDB_LOAD_SDS,NULL)) == NULL) {
                 sdsfree(field);
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
 
             /* Add pair to ziplist */
@@ -1719,12 +1719,12 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
             /* Load encoded strings */
             if ((field = (sds)rdbGenericLoadStringObject(rdb,RDB_LOAD_SDS,NULL)) == NULL) {
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             if ((value = (sds)rdbGenericLoadStringObject(rdb,RDB_LOAD_SDS,NULL)) == NULL) {
                 sdsfree(field);
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
 
             /* Add pair to hash table */
@@ -1737,7 +1737,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         /* All pairs should be read by now */
         serverAssert(len == 0);
     } else if (rdbtype == RDB_TYPE_LIST_QUICKLIST) {
-        if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return NULL;
+        if ((len = rdbLoadLen(rdb,NULL)) == RDB_LENERR) return nullptr;
         o = createQuicklistObject();
         quicklistSetOptions((quicklist*)ptrFromObj(o), g_pserver->list_max_ziplist_size,
                             g_pserver->list_compress_depth);
@@ -1747,7 +1747,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                 rdbGenericLoadStringObject(rdb,RDB_LOAD_PLAIN,NULL);
             if (zl == NULL) {
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             quicklistAppendZiplist((quicklist*)ptrFromObj(o), zl);
         }
@@ -1759,7 +1759,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
     {
         unsigned char *encoded = (unsigned char*)
             rdbGenericLoadStringObject(rdb,RDB_LOAD_PLAIN,NULL);
-        if (encoded == NULL) return NULL;
+        if (encoded == NULL) return nullptr;
         o = createObject(OBJ_STRING,encoded); /* Obj type fixed below. */
 
         /* Fix the object encoding, and make sure to convert the encoded
@@ -1833,7 +1833,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         if (listpacks == RDB_LENERR) {
             rdbReportReadError("Stream listpacks len loading failed.");
             decrRefCount(o);
-            return NULL;
+            return nullptr;
         }
 
         while(listpacks--) {
@@ -1844,7 +1844,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
             if (nodekey == NULL) {
                 rdbReportReadError("Stream master ID loading failed: invalid encoding or I/O error.");
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             if (sdslen(nodekey) != sizeof(streamID)) {
                 rdbExitReportCorruptRDB("Stream node key entry is not the "
@@ -1858,7 +1858,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                 rdbReportReadError("Stream listpacks loading failed.");
                 sdsfree(nodekey);
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             unsigned char *first = lpFirst(lp);
             if (first == NULL) {
@@ -1885,7 +1885,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         if (rioGetReadError(rdb)) {
             rdbReportReadError("Stream object metadata loading failed.");
             decrRefCount(o);
-            return NULL;
+            return nullptr;
         }
 
         /* Consumer groups loading */
@@ -1893,7 +1893,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         if (cgroups_count == RDB_LENERR) {
             rdbReportReadError("Stream cgroup count loading failed.");
             decrRefCount(o);
-            return NULL;
+            return nullptr;
         }
         while(cgroups_count--) {
             /* Get the consumer group name and ID. We can then create the
@@ -1905,7 +1905,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                 rdbReportReadError(
                     "Error reading the consumer group name from Stream");
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
 
             cg_id.ms = rdbLoadLen(rdb,NULL);
@@ -1914,7 +1914,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                 rdbReportReadError("Stream cgroup ID loading failed.");
                 sdsfree(cgname);
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
 
             streamCG *cgroup = streamCreateCG(s,cgname,sdslen(cgname),&cg_id);
@@ -1932,14 +1932,14 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
             if (pel_size == RDB_LENERR) {
                 rdbReportReadError("Stream PEL size loading failed.");
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             while(pel_size--) {
                 unsigned char rawid[sizeof(streamID)];
                 if (rioRead(rdb,rawid,sizeof(rawid)) == 0) {
                     rdbReportReadError("Stream PEL ID loading failed.");
                     decrRefCount(o);
-                    return NULL;
+                    return nullptr;
                 }
                 streamNACK *nack = streamCreateNACK(NULL);
                 nack->delivery_time = rdbLoadMillisecondTime(rdb,RDB_VERSION);
@@ -1948,7 +1948,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                     rdbReportReadError("Stream PEL NACK loading failed.");
                     decrRefCount(o);
                     streamFreeNACK(nack);
-                    return NULL;
+                    return nullptr;
                 }
                 if (!raxInsert(cgroup->pel,rawid,sizeof(rawid),nack,NULL))
                     rdbExitReportCorruptRDB("Duplicated gobal PEL entry "
@@ -1961,7 +1961,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
             if (consumers_num == RDB_LENERR) {
                 rdbReportReadError("Stream consumers num loading failed.");
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             while(consumers_num--) {
                 sds cname = (sds)rdbGenericLoadStringObject(rdb,RDB_LOAD_SDS,NULL);
@@ -1969,7 +1969,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                     rdbReportReadError(
                         "Error reading the consumer name from Stream group.");
                     decrRefCount(o);
-                    return NULL;
+                    return nullptr;
                 }
                 streamConsumer *consumer =
                     streamLookupConsumer(cgroup,cname,SLC_NONE);
@@ -1978,7 +1978,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                 if (rioGetReadError(rdb)) {
                     rdbReportReadError("Stream short read reading seen time.");
                     decrRefCount(o);
-                    return NULL;
+                    return nullptr;
                 }
 
                 /* Load the PEL about entries owned by this specific
@@ -1988,7 +1988,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                     rdbReportReadError(
                         "Stream consumer PEL num loading failed.");
                     decrRefCount(o);
-                    return NULL;
+                    return nullptr;
                 }
                 while(pel_size--) {
                     unsigned char rawid[sizeof(streamID)];
@@ -1996,7 +1996,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
                         rdbReportReadError(
                             "Stream short read reading PEL streamID.");
                         decrRefCount(o);
-                        return NULL;
+                        return nullptr;
                     }
                     streamNACK *nack = (streamNACK*)raxFind(cgroup->pel,rawid,sizeof(rawid));
                     if (nack == raxNotFound)
@@ -2018,7 +2018,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         uint64_t moduleid = rdbLoadLen(rdb,NULL);
         if (rioGetReadError(rdb)) {
             rdbReportReadError("Short read module id");
-            return NULL;
+            return nullptr;
         }
         moduleType *mt = moduleTypeLookupModuleByID(moduleid);
         char name[10];
@@ -2052,7 +2052,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
             if (eof == RDB_LENERR) {
                 o = createModuleObject(mt,ptr); /* creating just in order to easily destroy */
                 decrRefCount(o);
-                return NULL;
+                return nullptr;
             }
             if (eof != RDB_MODULE_OPCODE_EOF) {
                 serverLog(LL_WARNING,"The RDB file contains module data for the module '%s' that is not terminated by the proper module value EOF marker", name);
@@ -2080,7 +2080,7 @@ robj *rdbLoadObject(int rdbtype, rio *rdb, sds key, uint64_t mvcc_tstamp) {
         o = createObject(OBJ_CRON, spjob.release());
     } else {
         rdbReportReadError("Unknown RDB encoding type %d",rdbtype);
-        return NULL;
+        return nullptr;
     }
 
     setMvccTstamp(o, mvcc_tstamp);
@@ -2129,7 +2129,7 @@ void loadingProgress(off_t pos) {
 /* Loading finished */
 void stopLoading(int success) {
     g_pserver->loading = 0;
-    rdbFileBeingLoaded = NULL;
+    rdbFileBeingLoaded = nullptr;
 
     /* Fire the loading modules end event. */
     moduleFireServerEvent(REDISMODULE_EVENT_LOADING,
@@ -2743,7 +2743,7 @@ int rdbSaveToSlavesSockets(rdbSaveInfo *rsi) {
             close(g_pserver->rdb_pipe_write);
             close(g_pserver->rdb_pipe_read);
             zfree(g_pserver->rdb_pipe_conns);
-            g_pserver->rdb_pipe_conns = NULL;
+            g_pserver->rdb_pipe_conns = nullptr;
             g_pserver->rdb_pipe_numconns = 0;
             g_pserver->rdb_pipe_numconns_writing = 0;
             closeChildInfoPipe();
@@ -2869,5 +2869,5 @@ rdbSaveInfo *rdbPopulateSaveInfo(rdbSaveInfo *rsi) {
         rsi->repl_stream_db = miFirst->cached_master->db->id;
         return rsi;
     }
-    return NULL;
+    return nullptr;
 }

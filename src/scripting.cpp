@@ -492,7 +492,7 @@ int luaRedisGenericCommand(lua_State *lua, int raise_error) {
     c->iel = serverTL - g_pserver->rgthreadvar;
 
     /* Cached across calls. */
-    static robj **argv = NULL;
+    static robj **argv = nullptr;
     static int argv_size = 0;
     static robj *cached_objects[LUA_CMD_OBJCACHE_SIZE];
     static size_t cached_objects_len[LUA_CMD_OBJCACHE_SIZE];
@@ -550,7 +550,7 @@ int luaRedisGenericCommand(lua_State *lua, int raise_error) {
         {
             sds s = (sds)ptrFromObj(cached_objects[j]);
             argv[j] = cached_objects[j];
-            cached_objects[j] = NULL;
+            cached_objects[j] = nullptr;
             memcpy(s,obj_s,obj_len+1);
             sdssetlen(s, obj_len);
         } else {
@@ -801,11 +801,11 @@ cleanup:
 
     if (c->argv != argv) {
         zfree(c->argv);
-        argv = NULL;
+        argv = nullptr;
         argv_size = 0;
     }
 
-    c->puser = NULL;
+    c->puser = nullptr;
 
     if (raise_error) {
         /* If we are here we should have an error in the stack, in the
@@ -1084,9 +1084,9 @@ void scriptingEnableGlobalsProtection(lua_State *lua) {
     s[j++]="  return rawget(t, n)\n";
     s[j++]="end\n";
     s[j++]="debug = nil\n";
-    s[j++]=NULL;
+    s[j++]=nullptr;
 
-    for (j = 0; s[j] != NULL; j++) code = sdscatlen(code,s[j],strlen(s[j]));
+    for (j = 0; s[j] != nullptr; j++) code = sdscatlen(code,s[j],strlen(s[j]));
     luaL_loadbuffer(lua,code,sdslen(code),"@enable_strict_lua");
     lua_pcall(lua,0,0,0);
     sdsfree(code);
@@ -1112,8 +1112,8 @@ void scriptingInit(int setup) {
             g_pserver->rgthreadvar[iel].lua_client->flags |= CLIENT_LUA;
         }
         g_pserver->lua_timedout = 0;
-        g_pserver->lua_caller = NULL;
-        g_pserver->lua_cur_script = NULL;
+        g_pserver->lua_caller = nullptr;
+        g_pserver->lua_cur_script = nullptr;
         ldbInit();
     }
 
@@ -1395,7 +1395,7 @@ sds luaCreateFunction(client *c, lua_State *lua, robj *body) {
         lua_pop(lua,1);
         sdsfree(sha);
         sdsfree(funcdef);
-        return NULL;
+        return nullptr;
     }
     sdsfree(funcdef);
 
@@ -1406,7 +1406,7 @@ sds luaCreateFunction(client *c, lua_State *lua, robj *body) {
         }
         lua_pop(lua,1);
         sdsfree(sha);
-        return NULL;
+        return nullptr;
     }
 
     /* We also save a SHA1 -> Original script map in a dictionary
@@ -1598,8 +1598,8 @@ void evalGenericCommand(client *c, int evalsha) {
                 queueClientForReprocessing(mi->master);
         }
     }
-    g_pserver->lua_caller = NULL;
-    g_pserver->lua_cur_script = NULL;
+    g_pserver->lua_caller = nullptr;
+    g_pserver->lua_cur_script = nullptr;
 
     /* Call the Lua garbage collector from time to time to avoid a
      * full cycle performed by Lua, which adds too latency.
@@ -1773,12 +1773,12 @@ NULL
 
 /* Initialize Lua debugger data structures. */
 void ldbInit(void) {
-    ldb.conn = NULL;
+    ldb.conn = nullptr;
     ldb.active = 0;
     ldb.logs = listCreate();
     listSetFreeMethod(ldb.logs,(void (*)(const void*))sdsfree);
     ldb.children = listCreate();
-    ldb.src = NULL;
+    ldb.src = nullptr;
     ldb.lines = 0;
     ldb.cbuf = sdsempty();
 }
@@ -2044,10 +2044,10 @@ int ldbDelBreakpoint(int line) {
  * On success the command is parsed and returned as an array of SDS strings,
  * otherwise NULL is returned and there is to read more buffer. */
 sds *ldbReplParseCommand(int *argcp) {
-    sds *argv = NULL;
+    sds *argv = nullptr;
     int argc = 0;
-    char *plen = NULL;
-    if (sdslen(ldb.cbuf) == 0) return NULL;
+    char *plen = nullptr;
+    if (sdslen(ldb.cbuf) == 0) return nullptr;
 
     /* Working on a copy is simpler in this case. We can modify it freely
      * for the sake of simpler parsing. */
@@ -2087,7 +2087,7 @@ sds *ldbReplParseCommand(int *argcp) {
 protoerr:
     sdsfreesplitres(argv,argc);
     sdsfree(copy);
-    return NULL;
+    return nullptr;
 }
 
 /* Log the specified line in the Lua debugger output. */

@@ -249,8 +249,8 @@ extern "C" void _serverAssert(const char *estr, const char *file, int line) {
 static redisContext *getRedisContext(const char *ip, int port,
                                      const char *hostsocket)
 {
-    redisContext *ctx = NULL;
-    redisReply *reply =  NULL;
+    redisContext *ctx = nullptr;
+    redisReply *reply =  nullptr;
     if (hostsocket == NULL)
         ctx = redisConnect(ip, port);
     else
@@ -289,20 +289,20 @@ static redisContext *getRedisContext(const char *ip, int port,
 cleanup:
     freeReplyObject(reply);
     redisFree(ctx);
-    return NULL;
+    return nullptr;
 }
 
 static redisConfig *getRedisConfig(const char *ip, int port,
                                    const char *hostsocket)
 {
     redisConfig *cfg = (redisConfig*)zcalloc(sizeof(*cfg));
-    if (!cfg) return NULL;
-    redisContext *c = NULL;
-    redisReply *reply = NULL, *sub_reply = NULL;
+    if (!cfg) return nullptr;
+    redisContext *c = nullptr;
+    redisReply *reply = NULL, *sub_reply = nullptr;
     c = getRedisContext(ip, port, hostsocket);
     if (c == NULL) {
         freeRedisConfig(cfg);
-        return NULL;
+        return nullptr;
     }
     redisAppendCommand(c, "CONFIG GET %s", "save");
     redisAppendCommand(c, "CONFIG GET %s", "appendonly");
@@ -311,7 +311,7 @@ static redisConfig *getRedisConfig(const char *ip, int port,
     for (int i=0; i < 2; i++) {
         int res = redisGetReply(c, &r);
         if (reply) freeReplyObject(reply);
-        reply = res == REDIS_OK ? ((redisReply *) r) : NULL;
+        reply = res == REDIS_OK ? ((redisReply *) r) : nullptr;
         if (res != REDIS_OK || !r) goto fail;
         if (reply->type == REDIS_REPLY_ERROR) {
             fprintf(stderr, "ERROR: %s\n", reply->str);
@@ -336,7 +336,7 @@ fail:
     freeReplyObject(reply);
     redisFree(c);
     freeRedisConfig(cfg);
-    return NULL;
+    return nullptr;
 }
 static void freeRedisConfig(redisConfig *cfg) {
     if (cfg->save) sdsfree(cfg->save);
@@ -455,7 +455,7 @@ static void clientDone(client c) {
 
 static void readHandler(aeEventLoop *el, int fd, void *privdata, int mask) {
     client c = (client)privdata;
-    void *reply = NULL;
+    void *reply = nullptr;
     UNUSED(el);
     UNUSED(fd);
     UNUSED(mask);
@@ -619,9 +619,9 @@ static client createClient(const char *cmd, size_t len, client from, int thread_
     int is_cluster_client = (config.cluster_mode && thread_id >= 0);
     client c = (client)zmalloc(sizeof(struct _client), MALLOC_LOCAL);
 
-    const char *ip = NULL;
+    const char *ip = nullptr;
     int port = 0;
-    c->cluster_node = NULL;
+    c->cluster_node = nullptr;
     if (config.hostsocket == NULL || is_cluster_client) {
         if (!is_cluster_client) {
             ip = config.hostip;
@@ -663,7 +663,7 @@ static client createClient(const char *cmd, size_t len, client from, int thread_
      * reused the commands will not be used again. */
     c->prefix_pending = 0;
     if (config.auth) {
-        char *buf = NULL;
+        char *buf = nullptr;
         int len;
         if (config.user == NULL)
             len = redisFormatCommand(&buf, "AUTH %s", config.auth);
@@ -676,7 +676,7 @@ static client createClient(const char *cmd, size_t len, client from, int thread_
     }
 
     if (config.enable_tracking) {
-        char *buf = NULL;
+        char *buf = nullptr;
         int len = redisFormatCommand(&buf, "CLIENT TRACKING on");
         c->obuf = sdscatlen(c->obuf, buf, len);
         free(buf);
@@ -705,9 +705,9 @@ static client createClient(const char *cmd, size_t len, client from, int thread_
 
     c->written = 0;
     c->pending = config.pipeline+c->prefix_pending;
-    c->randptr = NULL;
+    c->randptr = nullptr;
     c->randlen = 0;
-    c->stagptr = NULL;
+    c->stagptr = nullptr;
     c->staglen = 0;
 
     /* Find substrings in the output buffer that need to be randomized. */
@@ -769,7 +769,7 @@ static client createClient(const char *cmd, size_t len, client from, int thread_
             }
         }
     }
-    aeEventLoop *el = NULL;
+    aeEventLoop *el = nullptr;
     if (thread_id < 0) el = config.el;
     else {
         benchmarkThread *thread = config.threads[thread_id];
@@ -930,7 +930,7 @@ static void benchmark(const char *title, const char *cmd, int len) {
 
 static benchmarkThread *createBenchmarkThread(int index) {
     benchmarkThread *thread = (benchmarkThread*)zmalloc(sizeof(*thread), MALLOC_LOCAL);
-    if (thread == NULL) return NULL;
+    if (thread == NULL) return nullptr;
     thread->index = index;
     thread->el = aeCreateEventLoop(1024*10);
     aeCreateTimeEvent(thread->el,1,showThroughput,NULL,NULL);
@@ -949,36 +949,36 @@ static void freeBenchmarkThreads() {
         if (thread) freeBenchmarkThread(thread);
     }
     zfree(config.threads);
-    config.threads = NULL;
+    config.threads = nullptr;
 }
 
 static void *execBenchmarkThread(void *ptr) {
     benchmarkThread *thread = (benchmarkThread *) ptr;
     aeMain(thread->el);
-    return NULL;
+    return nullptr;
 }
 
 /* Cluster helper functions. */
 
 static clusterNode *createClusterNode(char *ip, int port) {
     clusterNode *node = (clusterNode*)zmalloc(sizeof(*node), MALLOC_LOCAL);
-    if (!node) return NULL;
+    if (!node) return nullptr;
     node->ip = ip;
     node->port = port;
-    node->name = NULL;
+    node->name = nullptr;
     node->flags = 0;
-    node->replicate = NULL;
+    node->replicate = nullptr;
     node->replicas_count = 0;
     node->slots = (int*)zmalloc(CLUSTER_SLOTS * sizeof(int), MALLOC_LOCAL);
     node->slots_count = 0;
     node->current_slot_index = 0;
-    node->updated_slots = NULL;
+    node->updated_slots = nullptr;
     node->updated_slots_count = 0;
-    node->migrating = NULL;
-    node->importing = NULL;
+    node->migrating = nullptr;
+    node->importing = nullptr;
     node->migrating_count = 0;
     node->importing_count = 0;
-    node->redis_config = NULL;
+    node->redis_config = nullptr;
     return node;
 }
 
@@ -1010,25 +1010,25 @@ static void freeClusterNodes() {
         if (n) freeClusterNode(n);
     }
     zfree(config.cluster_nodes);
-    config.cluster_nodes = NULL;
+    config.cluster_nodes = nullptr;
 }
 
 static clusterNode **addClusterNode(clusterNode *node) {
     int count = config.cluster_node_count + 1;
     config.cluster_nodes = (clusterNode**)zrealloc(config.cluster_nodes,
                                     count * sizeof(*node), MALLOC_LOCAL);
-    if (!config.cluster_nodes) return NULL;
+    if (!config.cluster_nodes) return nullptr;
     config.cluster_nodes[config.cluster_node_count++] = node;
     return config.cluster_nodes;
 }
 
 static int fetchClusterConfiguration() {
     int success = 1;
-    redisContext *ctx = NULL;
-    redisReply *reply =  NULL;
-    char *lines = NULL;
-    char *line = NULL;
-    char *p = NULL;
+    redisContext *ctx = nullptr;
+    redisReply *reply =  nullptr;
+    char *lines = nullptr;
+    char *line = nullptr;
+    char *p = nullptr;
     ctx = getRedisContext(config.hostip, config.hostport, config.hostsocket);
     if (ctx == NULL) {
         exit(1);
@@ -1055,7 +1055,7 @@ static int fetchClusterConfiguration() {
         *p = '\0';
         line = lines;
         lines = p + 1;
-        char *name = NULL, *addr = NULL, *flags = NULL, *master_id = NULL;
+        char *name = NULL, *addr = NULL, *flags = NULL, *master_id = nullptr;
         int i = 0;
         while ((p = strchr(line, ' ')) != NULL) {
             *p = '\0';
@@ -1083,8 +1083,8 @@ static int fetchClusterConfiguration() {
             success = 0;
             goto cleanup;
         }
-        clusterNode *node = NULL;
-        char *ip = NULL;
+        clusterNode *node = nullptr;
+        char *ip = nullptr;
         int port = 0;
         char *paddr = strchr(addr, ':');
         if (paddr != NULL) {
@@ -1122,7 +1122,7 @@ static int fetchClusterConfiguration() {
                     line = p + 1;
                     remaining--;
                 } else line = p;
-                char *dash = NULL;
+                char *dash = nullptr;
                 if (slotsdef[0] == '[') {
                     slotsdef++;
                     if ((p = strstr(slotsdef, "->-"))) { // Migrating
@@ -1201,7 +1201,7 @@ static int fetchClusterSlotsConfiguration(client c) {
         c->slots_last_update = last_update;
         return -1;
     }
-    redisReply *reply = NULL;
+    redisReply *reply = nullptr;
     atomicGetIncr(config.is_fetching_slots, is_fetching_slots, 1);
     if (is_fetching_slots) return -1; //TODO: use other codes || errno ?
     atomicSet(config.is_fetching_slots, 1);
@@ -1218,7 +1218,7 @@ static int fetchClusterSlotsConfiguration(client c) {
     };
     /* printf("[%d] fetchClusterSlotsConfiguration\n", c->thread_id); */
     dict *masters = dictCreate(&dtype, NULL);
-    redisContext *ctx = NULL;
+    redisContext *ctx = nullptr;
     for (i = 0; i < (size_t) config.cluster_node_count; i++) {
         clusterNode *node = config.cluster_nodes[i];
         assert(node->ip != NULL);
@@ -1234,7 +1234,7 @@ static int fetchClusterSlotsConfiguration(client c) {
         }
         if (node->updated_slots != NULL)
             zfree(node->updated_slots);
-        node->updated_slots = NULL;
+        node->updated_slots = nullptr;
         node->updated_slots_count = 0;
         dictReplace(masters, node->name, node) ;
     }
@@ -1293,7 +1293,7 @@ static void updateClusterSlotsConfiguration() {
             node->slots = node->updated_slots;
             node->slots_count = node->updated_slots_count;
             node->current_slot_index = 0;
-            node->updated_slots = NULL;
+            node->updated_slots = nullptr;
             node->updated_slots_count = 0;
             zfree(oldslots);
         }
@@ -1519,7 +1519,7 @@ int test_is_selected(const char *name) {
     memcpy(buf+1,name,l);
     buf[l+1] = ',';
     buf[l+2] = '\0';
-    return strstr(config.tests,buf) != NULL;
+    return strstr(config.tests,buf) != nullptr;
 }
 
 int main(int argc, const char **argv) {
@@ -1550,21 +1550,21 @@ int main(int argc, const char **argv) {
     config.csv = 0;
     config.loop = 0;
     config.idlemode = 0;
-    config.latency = NULL;
+    config.latency = nullptr;
     config.clients = listCreate();
     config.hostip = "127.0.0.1";
     config.hostport = 6379;
-    config.hostsocket = NULL;
-    config.tests = NULL;
+    config.hostsocket = nullptr;
+    config.tests = nullptr;
     config.dbnum = 0;
-    config.auth = NULL;
+    config.auth = nullptr;
     config.precision = 1;
     config.num_threads = 0;
-    config.threads = NULL;
+    config.threads = nullptr;
     config.cluster_mode = 0;
     config.cluster_node_count = 0;
-    config.cluster_nodes = NULL;
-    config.redis_config = NULL;
+    config.cluster_nodes = nullptr;
+    config.redis_config = nullptr;
     config.is_fetching_slots = 0;
     config.is_updating_slots = 0;
     config.slots_last_update = 0;

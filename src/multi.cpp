@@ -34,7 +34,7 @@ bool FInReplicaReplay();
 
 /* Client state initialization for MULTI/EXEC */
 void initClientMultiState(client *c) {
-    c->mstate.commands = NULL;
+    c->mstate.commands = nullptr;
     c->mstate.count = 0;
     c->mstate.cmd_flags = 0;
     c->mstate.cmd_inv_flags = 0;
@@ -270,7 +270,7 @@ typedef struct watchedKey {
 
 /* Watch for the specified key */
 void watchForKey(client *c, robj *key) {
-    list *clients = NULL;
+    list *clients = nullptr;
     listIter li;
     listNode *ln;
     watchedKey *wk;

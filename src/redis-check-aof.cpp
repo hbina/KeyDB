@@ -75,7 +75,7 @@ int readBytes(FILE *fp, char *target, long length) {
 
 int readString(FILE *fp, char** target) {
     long len;
-    *target = NULL;
+    *target = nullptr;
     if (!readLong(fp,'$',&len)) {
         return 0;
     }

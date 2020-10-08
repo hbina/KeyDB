@@ -89,7 +89,7 @@ struct redisServer server; /* Server global state */
 }
 redisServer *g_pserver = &GlobalHidden::server;
 struct redisServerConst cserver;
-__thread struct redisServerThreadVars *serverTL = NULL;   // thread local server vars
+__thread struct redisServerThreadVars *serverTL = nullptr;   // thread local server vars
 volatile unsigned long lru_clock; /* Server global current LRU time. */
 
 /* Our command table.
@@ -2395,23 +2395,23 @@ void createSharedObjects(void) {
     shared.plus = makeObjectShared(createObject(OBJ_STRING,sdsnew("+")));
 
     /* The shared NULL depends on the protocol version. */
-    shared.null[0] = NULL;
-    shared.null[1] = NULL;
+    shared.null[0] = nullptr;
+    shared.null[1] = nullptr;
     shared.null[2] = makeObjectShared(createObject(OBJ_STRING,sdsnew("$-1\r\n")));
     shared.null[3] = makeObjectShared(createObject(OBJ_STRING,sdsnew("_\r\n")));
 
-    shared.nullarray[0] = NULL;
-    shared.nullarray[1] = NULL;
+    shared.nullarray[0] = nullptr;
+    shared.nullarray[1] = nullptr;
     shared.nullarray[2] = makeObjectShared(createObject(OBJ_STRING,sdsnew("*-1\r\n")));
     shared.nullarray[3] = makeObjectShared(createObject(OBJ_STRING,sdsnew("_\r\n")));
 
-    shared.emptymap[0] = NULL;
-    shared.emptymap[1] = NULL;
+    shared.emptymap[0] = nullptr;
+    shared.emptymap[1] = nullptr;
     shared.emptymap[2] = createObject(OBJ_STRING,sdsnew("*0\r\n"));
     shared.emptymap[3] = createObject(OBJ_STRING,sdsnew("%0\r\n"));
 
-    shared.emptyset[0] = NULL;
-    shared.emptyset[1] = NULL;
+    shared.emptyset[0] = nullptr;
+    shared.emptyset[1] = nullptr;
     shared.emptyset[2] = createObject(OBJ_STRING,sdsnew("*0\r\n"));
     shared.emptyset[3] = createObject(OBJ_STRING,sdsnew("~0\r\n"));
 
@@ -2468,16 +2468,16 @@ void initMasterInfo(redisMaster *master)
     if (cserver.default_masterauth)
         master->masterauth = zstrdup(cserver.default_masterauth);
     else
-        master->masterauth = NULL;
+        master->masterauth = nullptr;
 
     if (cserver.default_masteruser)
         master->masteruser = zstrdup(cserver.default_masteruser);
     else
-        master->masteruser = NULL;
+        master->masteruser = nullptr;
 
     master->masterport = 6379;
-    master->master = NULL;
-    master->cached_master = NULL;
+    master->master = nullptr;
+    master->cached_master = nullptr;
     master->master_initial_offset = -1;
     
     master->isActive = false;
@@ -2505,16 +2505,16 @@ void initServerConfig(void) {
     g_pserver->clients_timeout_table = raxNew();
     g_pserver->events_processed_while_blocked = 0;
     g_pserver->timezone = getTimeZone(); /* Initialized by tzset(). */
-    cserver.configfile = NULL;
-    cserver.executable = NULL;
+    cserver.configfile = nullptr;
+    cserver.executable = nullptr;
     g_pserver->hz = g_pserver->config_hz = CONFIG_DEFAULT_HZ;
     g_pserver->bindaddr_count = 0;
-    g_pserver->unixsocket = NULL;
+    g_pserver->unixsocket = nullptr;
     g_pserver->unixsocketperm = CONFIG_DEFAULT_UNIX_SOCKET_PERM;
     g_pserver->sofd = -1;
     g_pserver->active_expire_enabled = 1;
     cserver.client_max_querybuf_len = PROTO_MAX_QUERYBUF_LEN;
-    g_pserver->saveparams = NULL;
+    g_pserver->saveparams = nullptr;
     g_pserver->loading = 0;
     g_pserver->logfile = zstrdup(CONFIG_DEFAULT_LOGFILE);
     g_pserver->syslog_facility = LOG_LOCAL0;
@@ -2532,9 +2532,9 @@ void initServerConfig(void) {
     g_pserver->aof_fd = -1;
     g_pserver->aof_selected_db = -1; /* Make sure the first time will not match */
     g_pserver->aof_flush_postponed_start = 0;
-    cserver.pidfile = NULL;
-    g_pserver->rdb_filename = NULL;
-    g_pserver->rdb_s3bucketpath = NULL;
+    cserver.pidfile = nullptr;
+    g_pserver->rdb_filename = nullptr;
+    g_pserver->rdb_s3bucketpath = nullptr;
     g_pserver->active_defrag_running = 0;
     g_pserver->notify_keyspace_events = 0;
     g_pserver->blocked_clients = 0;
@@ -2561,7 +2561,7 @@ void initServerConfig(void) {
     g_pserver->master_repl_offset = 0;
 
     /* Replication partial resync backlog */
-    g_pserver->repl_backlog = NULL;
+    g_pserver->repl_backlog = nullptr;
     g_pserver->repl_backlog_histlen = 0;
     g_pserver->repl_backlog_idx = 0;
     g_pserver->repl_backlog_off = 0;
@@ -2877,7 +2877,7 @@ int listenToPort(int port, int *fds, int *count, int fReusePort, int fFirstListe
 
     /* Force binding of 0.0.0.0 if no bind address is specified, always
      * entering the loop if j == 0. */
-    if (g_pserver->bindaddr_count == 0) g_pserver->bindaddr[0] = NULL;
+    if (g_pserver->bindaddr_count == 0) g_pserver->bindaddr[0] = nullptr;
     for (j = 0; j < g_pserver->bindaddr_count || j == 0; j++) {
         if (g_pserver->bindaddr[j] == NULL) {
             int unsupported = 0;
@@ -3164,10 +3164,10 @@ void initServer(void) {
     g_pserver->aof_child_pid = -1;
     g_pserver->module_child_pid = -1;
     g_pserver->rdb_child_type = RDB_CHILD_TYPE_NONE;
-    g_pserver->rdb_pipe_conns = NULL;
+    g_pserver->rdb_pipe_conns = nullptr;
     g_pserver->rdb_pipe_numconns = 0;
     g_pserver->rdb_pipe_numconns_writing = 0;
-    g_pserver->rdb_pipe_buff = NULL;
+    g_pserver->rdb_pipe_buff = nullptr;
     g_pserver->rdb_pipe_bufflen = 0;
     g_pserver->rdb_bgsave_scheduled = 0;
     g_pserver->child_info_pipe[0] = -1;
@@ -3359,7 +3359,7 @@ void resetCommandTableStats(void) {
 /* ========================== Redis OP Array API ============================ */
 
 void redisOpArrayInit(redisOpArray *oa) {
-    oa->ops = NULL;
+    oa->ops = nullptr;
     oa->numops = 0;
 }
 
@@ -4850,7 +4850,7 @@ sds genRedisInfoString(const char *section) {
             listRewind(g_pserver->slaves,&li);
             while((ln = listNext(&li))) {
                 client *replica = (client*)listNodeValue(ln);
-                const char *state = NULL;
+                const char *state = nullptr;
                 char ip[NET_IP_STR_LEN], *slaveip = replica->slave_ip;
                 int port;
                 long lag = 0;
@@ -5479,7 +5479,7 @@ void *workerThreadMain(void *parg)
     serverAssert(!GlobalLocksAcquired());
     aeDeleteEventLoop(el);
 
-    return NULL;
+    return nullptr;
 }
 
 static void validateConfiguration()
@@ -5569,7 +5569,7 @@ int main(int argc, char **argv) {
      * to be able to restart the server later. */
     cserver.executable = getAbsolutePath(argv[0]);
     cserver.exec_argv = (char**)zmalloc(sizeof(char*)*(argc+1), MALLOC_LOCAL);
-    cserver.exec_argv[argc] = NULL;
+    cserver.exec_argv[argc] = nullptr;
     for (j = 0; j < argc; j++) cserver.exec_argv[j] = zstrdup(argv[j]);
 
     /* We need to init sentinel right now as parsing the configuration file
@@ -5591,7 +5591,7 @@ int main(int argc, char **argv) {
     if (argc >= 2) {
         j = 1; /* First option to parse in argv[] */
         sds options = sdsempty();
-        char *configfile = NULL;
+        char *configfile = nullptr;
 
         /* Handle special options --help and --version */
         if (strcmp(argv[1], "-v") == 0 ||

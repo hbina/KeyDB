@@ -41,8 +41,8 @@
  *
  * Clients will normally take frequently requested objects in memory, removing
  * them when invalidation messages are received. */
-rax *TrackingTable = NULL;
-rax *PrefixTable = NULL;
+rax *TrackingTable = nullptr;
+rax *PrefixTable = nullptr;
 uint64_t TrackingTableTotalItems = 0; /* Total number of IDs stored across
                                          the whole tracking table. This gives
                                          an hint about the total memory we
@@ -86,7 +86,7 @@ void disableTracking(client *c) {
         }
         raxStop(&ri);
         raxFree(c->client_tracking_prefixes);
-        c->client_tracking_prefixes = NULL;
+        c->client_tracking_prefixes = nullptr;
     }
 
     /* Clear flags and adjust the count. */
@@ -450,7 +450,7 @@ sds trackingBuildBroadcastReply(client *c, rax *keys) {
         }
         raxStop(&ri);
 
-        if (count == 0) return NULL;
+        if (count == 0) return nullptr;
     }
 
     /* Create the array reply with the list of keys once, then send

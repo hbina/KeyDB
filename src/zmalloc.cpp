@@ -155,7 +155,7 @@ void *zrealloc(void *ptr, size_t size, enum MALLOC_CLASS mclass) {
 
     if (size == 0 && ptr != NULL) {
         zfree(ptr);
-        return NULL;
+        return nullptr;
     }
     if (ptr == NULL) return zmalloc(size, mclass);
 #ifdef HAVE_MALLOC_SIZE

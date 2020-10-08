@@ -12,8 +12,8 @@
 #include <fcntl.h>
 #include "storage.h"
 
-struct memkind *mkdisk = NULL;
-static const char *PMEM_DIR = NULL;
+struct memkind *mkdisk = nullptr;
+static const char *PMEM_DIR = nullptr;
 
 extern "C" int memkind_pmem_iskind(struct memkind *kind, const void *pv);
 
@@ -98,7 +98,7 @@ void pool_free(struct alloc_pool *ppool, void *pv)
     struct object_page *cur = ppool->pobjpageHead;
     char *obj = (char*)pv;
 
-    for (;cur != NULL;)
+    for (;cur != nullptr;)
     {
         if (obj >= cur->rgb() && (obj < (cur->rgb() + (OBJECT_PAGE_BUFFER_SIZE * ppool->cbObject))))
         {

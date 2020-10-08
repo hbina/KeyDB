@@ -487,7 +487,7 @@ robj *lookupStringForBitCommand(client *c, size_t maxbit) {
         o = createObject(OBJ_STRING,sdsnewlen(NULL, byte+1));
         dbAdd(c->db,c->argv[1],o);
     } else {
-        if (checkType(c,o,OBJ_STRING)) return NULL;
+        if (checkType(c,o,OBJ_STRING)) return nullptr;
         o = dbUnshareStringValue(c->db,c->argv[1],o);
         o->m_ptr = sdsgrowzero(szFromObj(o),byte+1);
     }
@@ -509,7 +509,7 @@ robj *lookupStringForBitCommand(client *c, size_t maxbit) {
  * and set 'len' to 0. */
 const unsigned char *getObjectReadOnlyString(robj_roptr o, long *len, char *llbuf) {
     serverAssert(o->type == OBJ_STRING);
-    const unsigned char *p = NULL;
+    const unsigned char *p = nullptr;
 
     /* Set the 'p' pointer to the string, that can be just a stack allocated
      * array if our string was integer encoded. */
@@ -603,7 +603,7 @@ void bitopCommand(client *c) {
     unsigned long *len, maxlen = 0; /* Array of length of src strings,
                                        and max len. */
     unsigned long minlen = 0;    /* Min len among the input keys. */
-    unsigned char *res = NULL; /* Resulting string. */
+    unsigned char *res = nullptr; /* Resulting string. */
 
     /* Parse the operation name. */
     if ((opname[0] == 'a' || opname[0] == 'A') && !strcasecmp(opname,"and"))
@@ -656,7 +656,7 @@ void bitopCommand(client *c) {
         /* Handle non-existing keys as empty strings. */
         if (o == nullptr) {
             objects[j] = nullptr;
-            src[j] = NULL;
+            src[j] = nullptr;
             len[j] = 0;
             minlen = 0;
             continue;
@@ -998,7 +998,7 @@ void bitfieldGeneric(client *c, int flags) {
     robj_roptr o;
     size_t bitoffset;
     int j, numops = 0, changes = 0;
-    struct bitfieldOp *ops = NULL; /* Array of ops to execute at end. */
+    struct bitfieldOp *ops = nullptr; /* Array of ops to execute at end. */
     int owtype = BFOVERFLOW_WRAP; /* Overflow type. */
     int readonly = 1;
     size_t highest_write_offset = 0;
@@ -1179,7 +1179,7 @@ void bitfieldGeneric(client *c, int flags) {
             /* GET */
             unsigned char buf[9];
             long strlen = 0;
-            const unsigned char *src = NULL;
+            const unsigned char *src = nullptr;
             char llbuf[LONG_STR_SIZE];
 
             if (o != nullptr)

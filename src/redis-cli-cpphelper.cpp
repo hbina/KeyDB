@@ -31,7 +31,7 @@ static dict *clusterManagerGetLinkStatus(void);
 static clusterManagerNode *clusterManagerNodeMasterRandom();
 
 /* Used by clusterManagerFixSlotsCoverage */
-struct dict *clusterManagerUncoveredSlots = NULL;
+struct dict *clusterManagerUncoveredSlots = nullptr;
 
 /* The Cluster Manager global structure */
 struct clusterManager cluster_manager;
@@ -93,7 +93,7 @@ extern "C" void freeClusterManager(void) {
             freeClusterManagerNode(n);
         }
         listRelease(cluster_manager.nodes);
-        cluster_manager.nodes = NULL;
+        cluster_manager.nodes = nullptr;
     }
     if (cluster_manager.errors != NULL) {
         listRewind(cluster_manager.errors,&li);
@@ -102,7 +102,7 @@ extern "C" void freeClusterManager(void) {
             sdsfree(err);
         }
         listRelease(cluster_manager.errors);
-        cluster_manager.errors = NULL;
+        cluster_manager.errors = nullptr;
     }
     if (clusterManagerUncoveredSlots != NULL)
         dictRelease(clusterManagerUncoveredSlots);
@@ -132,7 +132,7 @@ static clusterManagerNode *clusterManagerNodeMasterRandom() {
         }
     }
     /* Can not be reached */
-    return NULL;
+    return nullptr;
 }
 
 static int clusterManagerFixSlotsCoverage(char *all_slots) {
@@ -149,7 +149,7 @@ static int clusterManagerFixSlotsCoverage(char *all_slots) {
     }
 
     int i, fixed = 0;
-    list *none = NULL, *single = NULL, *multi = NULL;
+    list *none = NULL, *single = NULL, *multi = nullptr;
     clusterManagerLogInfo(">>> Fixing slots coverage...\n");
     for (i = 0; i < CLUSTER_MANAGER_SLOTS; i++) {
         int covered = all_slots[i];
@@ -370,7 +370,7 @@ int clusterManagerGetAntiAffinityScore(clusterManagerNodeArray *ipnodes,
 {
     int score = 0, i, j;
     int node_len = cluster_manager.nodes->len;
-    clusterManagerNode **offending_p = NULL;
+    clusterManagerNode **offending_p = nullptr;
     if (offending != NULL) {
         *offending = (clusterManagerNode**)zcalloc(node_len * sizeof(clusterManagerNode*), MALLOC_LOCAL);
         offending_p = *offending;
@@ -381,7 +381,7 @@ int clusterManagerGetAntiAffinityScore(clusterManagerNodeArray *ipnodes,
     for (i = 0; i < ip_count; i++) {
         clusterManagerNodeArray *node_array = &(ipnodes[i]);
         dict *related = dictCreate(&clusterManagerDictType, NULL);
-        char *ip = NULL;
+        char *ip = nullptr;
         for (j = 0; j < node_array->len; j++) {
             clusterManagerNode *node = node_array->nodes[j];
             if (node == NULL) continue;
@@ -445,7 +445,7 @@ extern "C" void clusterManagerWaitForClusterJoin(void) {
         sleep(1);
         if (++counter > check_after) {
             dict *status = clusterManagerGetLinkStatus();
-            dictIterator *iter = NULL;
+            dictIterator *iter = nullptr;
             if (status != NULL && dictSize(status) > 0) {
                 printf("\n");
                 clusterManagerLogErr("Warning: %d node(s) may "
@@ -454,7 +454,7 @@ extern "C" void clusterManagerWaitForClusterJoin(void) {
                 dictEntry *entry;
                 while ((entry = dictNext(iter)) != NULL) {
                     sds nodeaddr = (sds) dictGetKey(entry);
-                    char *node_ip = NULL;
+                    char *node_ip = nullptr;
                     int node_port = 0, node_bus_port = 0;
                     list *from = (list *) dictGetVal(entry);
                     if (parseClusterNodeAddress(nodeaddr, &node_ip,
@@ -490,7 +490,7 @@ extern "C" void clusterManagerWaitForClusterJoin(void) {
 }
 
 list *clusterManagerGetDisconnectedLinks(clusterManagerNode *node) {
-    list *links = NULL;
+    list *links = nullptr;
     char *lines = NULL, *p, *line;
     redisReply *reply = (redisReply*)CLUSTER_MANAGER_COMMAND(node, "CLUSTER NODES");
     if (!clusterManagerCheckRedisReply(node, reply, NULL)) goto cleanup;
@@ -501,7 +501,7 @@ list *clusterManagerGetDisconnectedLinks(clusterManagerNode *node) {
         *p = '\0';
         line = lines;
         lines = p + 1;
-        char *nodename = NULL, *addr = NULL, *flags = NULL, *link_status = NULL;
+        char *nodename = NULL, *addr = NULL, *flags = NULL, *link_status = nullptr;
         while ((p = strchr(line, ' ')) != NULL) {
             *p = '\0';
             char *token = line;
@@ -538,7 +538,7 @@ cleanup:
  * are the unreachable node addresses and the values are lists of
  * node addresses that cannot reach the unreachable node. */
 dict *clusterManagerGetLinkStatus(void) {
-    if (cluster_manager.nodes == NULL) return NULL;
+    if (cluster_manager.nodes == NULL) return nullptr;
     dict *status = dictCreate(&clusterManagerLinkDictType, NULL);
     listIter li;
     listNode *ln;
@@ -552,7 +552,7 @@ dict *clusterManagerGetLinkStatus(void) {
             listRewind(links, &lli);
             while ((lln = listNext(&lli)) != NULL) {
                 clusterManagerLink *link = (clusterManagerLink*)lln->value;
-                list *from = NULL;
+                list *from = nullptr;
                 dictEntry *entry = dictFind(status, link->node_addr);
                 if (entry) from = (list*)dictGetVal(entry);
                 else {
@@ -596,7 +596,7 @@ extern "C" int clusterManagerCheckCluster(int quiet) {
     listIter li;
     listRewind(cluster_manager.nodes, &li);
     int i;
-    dict *open_slots = NULL;
+    dict *open_slots = nullptr;
     while ((ln = listNext(&li)) != NULL) {
         clusterManagerNode *n = (clusterManagerNode*)ln->value;
         if (n->migrating != NULL) {
@@ -784,7 +784,7 @@ static void getKeyTypes(dict *types_dict, redisReply *keys, typeinfo **types) {
         sds typereply = sdsnew(reply->str);
         dictEntry *de = dictFind(types_dict, typereply);
         sdsfree(typereply);
-        typeinfo *type = NULL;
+        typeinfo *type = nullptr;
         if (de)
             type = (typeinfo*)dictGetVal(de);
         else if (strcmp(reply->str, "none")) /* create new types for modules, (but not for deleted keys) */
@@ -800,7 +800,7 @@ void findBigKeys(int memkeys, unsigned memkeys_samples) {
     unsigned int arrsize=0, i;
     dictIterator *di;
     dictEntry *de;
-    typeinfo **types = NULL;
+    typeinfo **types = nullptr;
     double pct;
 
     dict *types_dict = dictCreate(&typeinfoDictType, NULL);

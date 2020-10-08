@@ -101,7 +101,7 @@ uint64_t dictGenCaseHashFunction(const unsigned char *buf, int len) {
  * NOTE: This function should only be called by ht_destroy(). */
 static void _dictReset(dictht *ht)
 {
-    ht->table = NULL;
+    ht->table = nullptr;
     ht->size = 0;
     ht->sizemask = 0;
     ht->used = 0;
@@ -213,7 +213,7 @@ int dictRehash(dict *d, int n) {
             d->ht[1].used++;
             de = nextde;
         }
-        d->ht[0].table[d->rehashidx] = NULL;
+        d->ht[0].table[d->rehashidx] = nullptr;
         d->rehashidx++;
     }
 
@@ -300,7 +300,7 @@ dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
     /* Get the index of the new element, or -1 if
      * the element already exists. */
     if ((index = _dictKeyIndex(d, key, dictHashKey(d,key), existing)) == -1)
-        return NULL;
+        return nullptr;
 
     /* Allocate the memory and store the new entry.
      * Insert the element in top, with the assumption that in a database
@@ -366,7 +366,7 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
     dictEntry *he, *prevHe;
     int table;
 
-    if (d->ht[0].used == 0 && d->ht[1].used == 0) return NULL;
+    if (d->ht[0].used == 0 && d->ht[1].used == 0) return nullptr;
 
     if (dictIsRehashing(d)) _dictRehashStep(d);
     h = dictHashKey(d, key);
@@ -374,7 +374,7 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
     for (table = 0; table <= 1; table++) {
         idx = h & d->ht[table].sizemask;
         he = d->ht[table].table[idx];
-        prevHe = NULL;
+        prevHe = nullptr;
         while(he) {
             if (key==he->key || dictCompareKeys(d, key, he->key)) {
                 /* Unlink the element from the list */
@@ -395,7 +395,7 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
         }
         if (!dictIsRehashing(d)) break;
     }
-    return NULL; /* not found */
+    return nullptr; /* not found */
 }
 
 /* Remove an element, returning DICT_OK on success or DICT_ERR if the
@@ -478,7 +478,7 @@ dictEntry *dictFind(dict *d, const void *key)
     dictEntry *he;
     uint64_t h, idx, table;
 
-    if (dictSize(d) == 0) return NULL; /* dict is empty */
+    if (dictSize(d) == 0) return nullptr; /* dict is empty */
     if (dictIsRehashing(d)) _dictRehashStep(d);
     h = dictHashKey(d, key);
     for (table = 0; table <= 1; table++) {
@@ -489,16 +489,16 @@ dictEntry *dictFind(dict *d, const void *key)
                 return he;
             he = he->next;
         }
-        if (!dictIsRehashing(d)) return NULL;
+        if (!dictIsRehashing(d)) return nullptr;
     }
-    return NULL;
+    return nullptr;
 }
 
 void *dictFetchValue(dict *d, const void *key) {
     dictEntry *he;
 
     he = dictFind(d,key);
-    return he ? dictGetVal(he) : NULL;
+    return he ? dictGetVal(he) : nullptr;
 }
 
 /* A fingerprint is a 64 bit number that represents the state of the dictionary
@@ -547,8 +547,8 @@ dictIterator *dictGetIterator(dict *d)
     iter->table = 0;
     iter->index = -1;
     iter->safe = 0;
-    iter->entry = NULL;
-    iter->nextEntry = NULL;
+    iter->entry = nullptr;
+    iter->nextEntry = nullptr;
     return iter;
 }
 
@@ -591,7 +591,7 @@ dictEntry *dictNext(dictIterator *iter)
             return iter->entry;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void dictReleaseIterator(dictIterator *iter)
@@ -613,7 +613,7 @@ dictEntry *dictGetRandomKey(dict *d)
     unsigned long h;
     int listlen, listele;
 
-    if (dictSize(d) == 0) return NULL;
+    if (dictSize(d) == 0) return nullptr;
     if (dictIsRehashing(d)) _dictRehashStep(d);
     if (dictIsRehashing(d)) {
         do {
@@ -995,7 +995,7 @@ static long _dictKeyIndex(dict *d, const void *key, uint64_t hash, dictEntry **e
 {
     unsigned long idx, table;
     dictEntry *he;
-    if (existing) *existing = NULL;
+    if (existing) *existing = nullptr;
 
     /* Expand the hash table if needed */
     if (_dictExpandIfNeeded(d) == DICT_ERR)
@@ -1044,7 +1044,7 @@ dictEntry **dictFindEntryRefByPtrAndHash(dict *d, const void *oldptr, uint64_t h
     dictEntry *he, **heref;
     unsigned long idx, table;
 
-    if (dictSize(d) == 0) return NULL; /* dict is empty */
+    if (dictSize(d) == 0) return nullptr; /* dict is empty */
     for (table = 0; table <= 1; table++) {
         idx = hash & d->ht[table].sizemask;
         heref = &d->ht[table].table[idx];
@@ -1055,9 +1055,9 @@ dictEntry **dictFindEntryRefByPtrAndHash(dict *d, const void *oldptr, uint64_t h
             heref = &he->next;
             he = *heref;
         }
-        if (!dictIsRehashing(d)) return NULL;
+        if (!dictIsRehashing(d)) return nullptr;
     }
-    return NULL;
+    return nullptr;
 }
 
 /* ------------------------------- Debugging ---------------------------------*/

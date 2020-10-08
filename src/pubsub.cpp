@@ -151,7 +151,7 @@ int pubsubSubscribeChannel(client *c, robj *channel) {
     serverAssert(GlobalLocksAcquired());
     serverAssert(c->lock.fOwnLock());
     dictEntry *de;
-    list *clients = NULL;
+    list *clients = nullptr;
     int retval = 0;
 
     /* Add the channel to the client -> channels hash table */
