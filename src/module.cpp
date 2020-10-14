@@ -671,7 +671,7 @@ void RedisModuleCommandDispatcher(client *c) {
     for (int i = 0; i < c->argc; i++) {
         /* Only do the work if the module took ownership of the object:
          * in that case the refcount is no longer 1. */
-        if (c->argv[i]->getrefcount(std::memory_order_relaxed) > 1)
+        if (c->argv[i]->getrefcount(std::memory_order_acq_rel) > 1)
             trimStringObjectIfNeeded(c->argv[i]);
     }
 }
@@ -1176,7 +1176,7 @@ void RM_RetainString(RedisModuleCtx *ctx, RedisModuleString *str) {
 * It is possible to call this function with a NULL context.
  */
 RedisModuleString* RM_HoldString(RedisModuleCtx *ctx, RedisModuleString *str) {
-    if (str->getrefcount(std::memory_order_relaxed) == OBJ_STATIC_REFCOUNT) {
+    if (str->getrefcount(std::memory_order_acq_rel) == OBJ_STATIC_REFCOUNT) {
         return RM_CreateStringFromString(ctx, str);
     }
 
@@ -1266,7 +1266,7 @@ int RM_StringCompare(RedisModuleString *a, RedisModuleString *b) {
 /* Return the (possibly modified in encoding) input 'str' object if
  * the string is unshared, otherwise NULL is returned. */
 RedisModuleString *moduleAssertUnsharedString(RedisModuleString *str) {
-    if (str->getrefcount(std::memory_order_relaxed) != 1) {
+    if (str->getrefcount(std::memory_order_acq_rel) != 1) {
         serverLog(LL_WARNING,
             "Module attempted to use an in-place string modify operation "
             "with a string referenced multiple times. Please check the code "
@@ -3328,7 +3328,7 @@ robj **moduleCreateArgvFromUserFormat(const char *cmdname, const char *fmt, int 
             argv[argc++] = createStringObject(cstr,strlen(cstr));
         } else if (*p == 's') {
             robj *obj = (robj*)va_arg(ap,void*);
-            if (obj->getrefcount(std::memory_order_relaxed) == OBJ_STATIC_REFCOUNT)
+            if (obj->getrefcount(std::memory_order_acq_rel) == OBJ_STATIC_REFCOUNT)
                 obj = createStringObject(szFromObj(obj),sdslen(szFromObj(obj)));
             else
                 incrRefCount(obj);

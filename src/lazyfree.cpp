@@ -99,7 +99,7 @@ int dbAsyncDelete(redisDb *db, robj *key) {
          * objects, and then call dbDelete(). In this case we'll fall
          * through and reach the dictFreeUnlinkedEntry() call, that will be
          * equivalent to just calling decrRefCount(). */
-        if (free_effort > LAZYFREE_THRESHOLD && val->getrefcount(std::memory_order_relaxed) == 1) {
+        if (free_effort > LAZYFREE_THRESHOLD && val->getrefcount(std::memory_order_acq_rel) == 1) {
             atomicIncr(lazyfree_objects,1);
             bioCreateBackgroundJob(BIO_LAZY_FREE,val,NULL,NULL);
             dictSetVal(db->pdict,de,NULL);
@@ -120,7 +120,7 @@ int dbAsyncDelete(redisDb *db, robj *key) {
 /* Free an object, if the object is huge enough, free it in async way. */
 void freeObjAsync(robj *o) {
     size_t free_effort = lazyfreeGetFreeEffort(o);
-    if (free_effort > LAZYFREE_THRESHOLD && o->getrefcount(std::memory_order_relaxed) == 1) {
+    if (free_effort > LAZYFREE_THRESHOLD && o->getrefcount(std::memory_order_acq_rel) == 1) {
         atomicIncr(lazyfree_objects,1);
         bioCreateBackgroundJob(BIO_LAZY_FREE,o,NULL,NULL);
     } else {

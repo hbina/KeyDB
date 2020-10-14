@@ -73,7 +73,7 @@ robj *createObject(int type, void *ptr) {
  *
  */
 robj *makeObjectShared(robj *o) {
-    serverAssert(o->getrefcount(std::memory_order_relaxed) == 1);
+    serverAssert(o->getrefcount(std::memory_order_acq_rel) == 1);
     serverAssert(!o->FExpires());
     o->setrefcount(OBJ_SHARED_REFCOUNT);
     return o;
@@ -369,7 +369,7 @@ void freeStreamObject(robj_roptr o) {
 }
 
 void incrRefCount(robj_roptr o) {
-    auto refcount = o->getrefcount(std::memory_order_relaxed);
+    auto refcount = o->getrefcount(std::memory_order_acq_rel);
     if (refcount < OBJ_FIRST_SPECIAL_REFCOUNT) {
         o->addref();
     } else {
@@ -382,7 +382,7 @@ void incrRefCount(robj_roptr o) {
 }
 
 void decrRefCount(robj_roptr o) {
-    if (o->getrefcount(std::memory_order_relaxed) == OBJ_SHARED_REFCOUNT)
+    if (o->getrefcount(std::memory_order_acq_rel) == OBJ_SHARED_REFCOUNT)
         return;
     unsigned prev = o->release();
     if (prev == 1) {
@@ -485,7 +485,7 @@ robj *tryObjectEncoding(robj *o) {
     /* It's not safe to encode shared objects: shared objects can be shared
      * everywhere in the "object space" of Redis and may end in places where
      * they are not handled. We handle them only as values in the keyspace. */
-     if (o->getrefcount(std::memory_order_relaxed) > 1) return o;
+     if (o->getrefcount(std::memory_order_acq_rel) > 1) return o;
 
     /* Check if we can represent this string as a long integer.
      * Note that we are sure that a string larger than 20 chars is not
@@ -1303,7 +1303,7 @@ NULL
     } else if (!strcasecmp(szFromObj(c->argv[1]),"refcount") && c->argc == 3) {
         if ((o = objectCommandLookupOrReply(c,c->argv[2],shared.null[c->resp]))
                 == NULL) return;
-        addReplyLongLong(c,o->getrefcount(std::memory_order_relaxed));
+        addReplyLongLong(c,o->getrefcount(std::memory_order_acq_rel));
     } else if (!strcasecmp(szFromObj(c->argv[1]),"encoding") && c->argc == 3) {
         if ((o = objectCommandLookupOrReply(c,c->argv[2],shared.null[c->resp]))
                 == NULL) return;
@@ -1502,15 +1502,15 @@ void redisObject::SetFExpires(bool fExpire)
 {
     serverAssert(this->refcount != OBJ_SHARED_REFCOUNT);
     if (fExpire)
-        this->refcount.fetch_or(1U << 31, std::memory_order_relaxed);
+        this->refcount.fetch_or(1U << 31, std::memory_order_acq_rel);
     else
-        this->refcount.fetch_and(~(1U << 31), std::memory_order_relaxed);
+        this->refcount.fetch_and(~(1U << 31), std::memory_order_acq_rel);
 }
 
 void redisObject::setrefcount(unsigned ref)
 { 
     serverAssert(!FExpires());
-    refcount.store(ref, std::memory_order_relaxed); 
+    refcount.store(ref, std::memory_order_acq_rel); 
 }
 
 redisObjectStack::redisObjectStack()

@@ -3534,7 +3534,7 @@ void call(client *c, int flags) {
     /* Send the command to clients in MONITOR mode if applicable.
      * Administrative commands are considered too dangerous to be shown. */
     if (listLength(g_pserver->monitors) &&
-        !g_pserver->loading.load(std::memory_order_relaxed) &&
+        !g_pserver->loading.load(std::memory_order_acq_rel) &&
         !(c->cmd->flags & (CMD_SKIP_MONITOR|CMD_ADMIN)))
     {
         replicationFeedMonitors(c,g_pserver->monitors,c->db->id,c->argv,c->argc);
@@ -4597,7 +4597,7 @@ sds genRedisInfoString(const char *section) {
             "aof_last_cow_size:%zu\r\n"
             "module_fork_in_progress:%d\r\n"
             "module_fork_last_cow_size:%zu\r\n",
-            !!g_pserver->loading.load(std::memory_order_relaxed),   /* Note: libraries expect 1 or 0 here so coerce our enum */
+            !!g_pserver->loading.load(std::memory_order_acq_rel),   /* Note: libraries expect 1 or 0 here so coerce our enum */
             g_pserver->dirty,
             g_pserver->rdb_child_pid != -1,
             (intmax_t)g_pserver->lastsave,
@@ -4737,8 +4737,8 @@ sds genRedisInfoString(const char *section) {
             (unsigned long long) trackingGetTotalItems(),
             (unsigned long long) trackingGetTotalPrefixes(),
             g_pserver->stat_unexpected_error_replies,
-            g_pserver->stat_total_reads_processed.load(std::memory_order_relaxed),
-            g_pserver->stat_total_writes_processed.load(std::memory_order_relaxed));
+            g_pserver->stat_total_reads_processed.load(std::memory_order_acq_rel),
+            g_pserver->stat_total_writes_processed.load(std::memory_order_acq_rel));
     }
 
     /* Replication */

@@ -246,7 +246,7 @@ void dbOverwriteCore(redisDb *db, dictEntry *de, robj *key, robj *val, bool fUpd
             removeExpire(db, key);
         }
         else {
-            if (val->getrefcount(std::memory_order_relaxed) == OBJ_SHARED_REFCOUNT)
+            if (val->getrefcount(std::memory_order_acq_rel) == OBJ_SHARED_REFCOUNT)
                 val = dupStringObject(val);
             updateExpire(db, (sds)dictGetKey(de), old, val);
         }
@@ -256,7 +256,7 @@ void dbOverwriteCore(redisDb *db, dictEntry *de, robj *key, robj *val, bool fUpd
         val->lru = old->lru;
     }
     if (fUpdateMvcc) {
-        if (val->getrefcount(std::memory_order_relaxed) == OBJ_SHARED_REFCOUNT)
+        if (val->getrefcount(std::memory_order_acq_rel) == OBJ_SHARED_REFCOUNT)
             val = dupStringObject(val);
         setMvccTstamp(val, getMvccTstamp());
     }
@@ -439,7 +439,7 @@ int dbDelete(redisDb *db, robj *key) {
  */
 robj *dbUnshareStringValue(redisDb *db, robj *key, robj *o) {
     serverAssert(o->type == OBJ_STRING);
-    if (o->getrefcount(std::memory_order_relaxed) != 1 || o->encoding != OBJ_ENCODING_RAW) {
+    if (o->getrefcount(std::memory_order_acq_rel) != 1 || o->encoding != OBJ_ENCODING_RAW) {
         robj *decoded = getDecodedObject(o);
         o = createRawStringObject(szFromObj(decoded), sdslen(szFromObj(decoded)));
         decrRefCount(decoded);
@@ -1351,7 +1351,7 @@ void setExpire(client *c, redisDb *db, robj *key, robj *subkey, long long when) 
     kde = dictFind(db->pdict,ptrFromObj(key));
     serverAssertWithInfo(NULL,key,kde != NULL);
 
-    if (((robj*)dictGetVal(kde))->getrefcount(std::memory_order_relaxed) == OBJ_SHARED_REFCOUNT)
+    if (((robj*)dictGetVal(kde))->getrefcount(std::memory_order_acq_rel) == OBJ_SHARED_REFCOUNT)
     {
         // shared objects cannot have the expire bit set, create a real object
         dictSetVal(db->pdict, kde, dupStringObject((robj*)dictGetVal(kde)));
@@ -1410,7 +1410,7 @@ void setExpire(client *c, redisDb *db, robj *key, expireEntry &&e)
     kde = dictFind(db->pdict,ptrFromObj(key));
     serverAssertWithInfo(NULL,key,kde != NULL);
 
-    if (((robj*)dictGetVal(kde))->getrefcount(std::memory_order_relaxed) == OBJ_SHARED_REFCOUNT)
+    if (((robj*)dictGetVal(kde))->getrefcount(std::memory_order_acq_rel) == OBJ_SHARED_REFCOUNT)
     {
         // shared objects cannot have the expire bit set, create a real object
         dictSetVal(db->pdict, kde, dupStringObject((robj*)dictGetVal(kde)));

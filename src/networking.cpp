@@ -1149,7 +1149,7 @@ int chooseBestThreadForAccept()
     {
         int cclientsThread;
         atomicGet(g_pserver->rgthreadvar[iel].cclients, cclientsThread);
-        cclientsThread += rgacceptsInFlight[iel].load(std::memory_order_relaxed);
+        cclientsThread += rgacceptsInFlight[iel].load(std::memory_order_acq_rel);
         if (cclientsThread < cserver.thread_min_client_threshold)
             return iel;
         if (cclientsThread < cclientsMin)
@@ -1321,7 +1321,7 @@ void acceptOnThread(connection *conn, int flags, char *cip)
         ielTarget = chooseBestThreadForAccept();
     }
 
-    rgacceptsInFlight[ielTarget].fetch_add(1, std::memory_order_relaxed);
+    rgacceptsInFlight[ielTarget].fetch_add(1, std::memory_order_acq_rel);
     if (ielTarget != ielCur)
     {
         char *szT = nullptr;
@@ -1334,7 +1334,7 @@ void acceptOnThread(connection *conn, int flags, char *cip)
             connMarshalThread(conn);
             acceptCommonHandler(conn,flags,szT,ielTarget);
             if (!g_fTestMode && !fBootLoad)
-                rgacceptsInFlight[ielTarget].fetch_sub(1, std::memory_order_relaxed);
+                rgacceptsInFlight[ielTarget].fetch_sub(1, std::memory_order_acq_rel);
             zfree(szT);
         });
 
@@ -1343,7 +1343,7 @@ void acceptOnThread(connection *conn, int flags, char *cip)
         // If res != AE_OK we can still try to accept on the local thread
     }
     if (!g_fTestMode && !fBootLoad)
-        rgacceptsInFlight[ielTarget].fetch_sub(1, std::memory_order_relaxed);
+        rgacceptsInFlight[ielTarget].fetch_sub(1, std::memory_order_acq_rel);
 
     aeAcquireLock();
     acceptCommonHandler(conn,flags,cip,ielCur);
@@ -1720,7 +1720,7 @@ client *lookupClientByID(uint64_t id) {
  * thread safe. */
 int writeToClient(client *c, int handler_installed) {
     /* Update total number of writes on server */
-    g_pserver->stat_total_writes_processed.fetch_add(1, std::memory_order_relaxed);
+    g_pserver->stat_total_writes_processed.fetch_add(1, std::memory_order_acq_rel);
 
     ssize_t nwritten = 0, totwritten = 0;
     clientReplyBlock *o;
@@ -1941,7 +1941,7 @@ int handleClientsWithPendingWrites(int iel, int aof_state) {
     for (client *c : vec) {
         AssertCorrectThread(c);
 
-        uint64_t flags = c->flags.fetch_and(~CLIENT_PENDING_WRITE, std::memory_order_relaxed);
+        uint64_t flags = c->flags.fetch_and(~CLIENT_PENDING_WRITE, std::memory_order_acq_rel);
 
         /* If a client is protected, don't do anything,
         * that may trigger write error or recreate handler. */
@@ -2446,7 +2446,7 @@ void readQueryFromClient(connection *conn) {
         return; // Process something else while we wait
 
     /* Update total number of reads on server */
-    g_pserver->stat_total_reads_processed.fetch_add(1, std::memory_order_relaxed);
+    g_pserver->stat_total_reads_processed.fetch_add(1, std::memory_order_acq_rel);
 
     readlen = PROTO_IOBUF_LEN;
     /* If this is a multi bulk request, and we are processing a bulk reply

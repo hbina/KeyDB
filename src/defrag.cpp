@@ -104,7 +104,7 @@ sds activeDefragSds(sds sdsptr) {
  * and should NOT be accessed. */
 robj *activeDefragStringOb(robj* ob, long *defragged) {
     robj *ret = NULL;
-    if (ob->getrefcount(std::memory_order_relaxed)!=1)
+    if (ob->getrefcount(std::memory_order_acq_rel)!=1)
         return NULL;
 
     /* try to defrag robj (only if not an EMBSTR type (handled below). */

@@ -168,7 +168,7 @@ static int connSocketWrite(connection *conn, const void *data, size_t data_len) 
     int ret = write(conn->fd, data, data_len);
     if (ret < 0 && errno != EAGAIN) {
         conn->last_errno = errno;
-        conn->state.store(CONN_STATE_ERROR, std::memory_order_relaxed);
+        conn->state.store(CONN_STATE_ERROR, std::memory_order_acq_rel);
     }
 
     return ret;
@@ -257,7 +257,7 @@ static void connSocketEventHandler(struct aeEventLoop *el, int fd, void *clientD
     UNUSED(fd);
     connection *conn = (connection*)clientData;
 
-    if (conn->state.load(std::memory_order_relaxed) == CONN_STATE_CONNECTING &&
+    if (conn->state.load(std::memory_order_acq_rel) == CONN_STATE_CONNECTING &&
             (mask & AE_WRITABLE) && conn->conn_handler) {
 
         if (connGetSocketError(conn)) {
@@ -418,7 +418,7 @@ int connRecvTimeout(connection *conn, long long ms) {
 }
 
 int connGetState(connection *conn) {
-    return conn->state.load(std::memory_order_relaxed);
+    return conn->state.load(std::memory_order_acq_rel);
 }
 
 void connSetThreadAffinity(connection *conn, int cpu) {
