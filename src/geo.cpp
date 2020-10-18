@@ -32,6 +32,8 @@
 #include "geohash_helper.h"
 #include "debugmacro.h"
 
+#include <algorithm>
+
 /* Things exported from t_zset.c only for geo.c, since it is the only other
  * part of Redis that requires close zset introspection. */
 unsigned char *zzlFirstInRange(unsigned char *zl, zrangespec *range);
@@ -381,20 +383,14 @@ int membersOfAllNeighbors(robj_roptr zobj, GeoHashRadius n, double lon, double l
 }
 
 /* Sort comparators for qsort() */
-static int sort_gp_asc(const void *a, const void *b) {
-    const struct geoPoint *gpa = (geoPoint*)a, *gpb = (geoPoint*)b;
+static bool sort_gp_asc(const geoPoint &gpa, const geoPoint &gpb) {
     /* We can't do adist - bdist because they are doubles and
      * the comparator returns an int. */
-    if (gpa->dist > gpb->dist)
-        return 1;
-    else if (gpa->dist == gpb->dist)
-        return 0;
-    else
-        return -1;
+    return (gpa.dist < gpb.dist);
 }
 
-static int sort_gp_desc(const void *a, const void *b) {
-    return -sort_gp_asc(a, b);
+static bool sort_gp_desc(const geoPoint &gpa, const geoPoint &gpb) {
+    return !sort_gp_asc(gpa, gpb);
 }
 
 /* ====================================================================
@@ -578,9 +574,9 @@ void georadiusGeneric(client *c, int flags) {
 
     /* Process [optional] requested sorting */
     if (sort == SORT_ASC) {
-        qsort(ga->array, result_length, sizeof(geoPoint), sort_gp_asc);
+        std::sort(ga->array, ga->array + result_length, sort_gp_asc);
     } else if (sort == SORT_DESC) {
-        qsort(ga->array, result_length, sizeof(geoPoint), sort_gp_desc);
+        std::sort(ga->array, ga->array + result_length, sort_gp_desc);
     }
 
     if (storekey == NULL) {
