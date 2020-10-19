@@ -92,7 +92,7 @@ void raxSetDebugMsg(int onoff) {
 
 /* Initialize the stack. */
 static inline void raxStackInit(raxStack *ts) {
-    ts->stack = ts->static_items;
+    ts->heap = NULL;
     ts->items = 0;
     ts->maxitems = RAX_STACK_STATIC_ITEMS;
     ts->oom = 0;
@@ -100,29 +100,43 @@ static inline void raxStackInit(raxStack *ts) {
 
 /* Push an item into the stack, returns 1 on success, 0 on out of memory. */
 static inline int raxStackPush(raxStack *ts, void *ptr) {
-    if (ts->items == ts->maxitems) {
-        if (ts->stack == ts->static_items) {
-            ts->stack = rax_malloc(sizeof(void*)*ts->maxitems*2);
-            if (ts->stack == NULL) {
-                ts->stack = ts->static_items;
-                ts->oom = 1;
-                errno = ENOMEM;
-                return 0;
-            }
-            memcpy(ts->stack,ts->static_items,sizeof(void*)*ts->maxitems);
+#define PUSH_TO_STACK(ts, ptr)                                                 \
+  ts->static_item[ts->items] = ptr;                                           \
+  ts->items = ts->items + 1;
+
+#define PUSH_TO_HEAP(ts, ptr)                                                  \
+  ts->heap[ts->items - RAX_STACK_STATIC_ITEMS] = ptr;                          \
+  ts->items = ts->items + 1;
+
+    if (ts->items < RAX_STACK_STATIC_ITEMS) {
+        PUSH_TO_STACK(ts, ptr);
+    } else if (ts->items == RAX_STACK_STATIC_ITEMS) {
+        const int new_size = ts->maxitems * 2;
+        void ** heap = rax_malloc(sizeof(void*) * new_size);
+        if (heap == NULL) {
+            ts->oom = 1;
+            errno = ENOMEM;
+            return 0;
         } else {
-            void **newalloc = rax_realloc(ts->stack,sizeof(void*)*ts->maxitems*2);
-            if (newalloc == NULL) {
-                ts->oom = 1;
-                errno = ENOMEM;
-                return 0;
-            }
-            ts->stack = newalloc;
+            ts->heap = heap;
+            ts->maxitems = new_size + RAX_STACK_STATIC_ITEMS;
+            PUSH_TO_HEAP(ts, ptr);
         }
-        ts->maxitems *= 2;
+    } else if (ts->items == ts->maxitems) {
+        const int new_size = ts->maxitems * 2;
+        void ** heap = rax_realloc(ts->heap, sizeof(void*) * new_size);
+        if (heap == NULL) {
+            ts->oom = 1;
+            errno = ENOMEM;
+            return 0;
+        } else {
+            ts->heap = heap;
+            ts->maxitems = new_size + RAX_STACK_STATIC_ITEMS;
+            PUSH_TO_HEAP(ts, ptr);
+        }
+    } else {
+        PUSH_TO_HEAP(ts, ptr);
     }
-    ts->stack[ts->items] = ptr;
-    ts->items++;
     return 1;
 }
 
@@ -130,20 +144,42 @@ static inline int raxStackPush(raxStack *ts, void *ptr) {
  * items to pop. */
 static inline void *raxStackPop(raxStack *ts) {
     if (ts->items == 0) return NULL;
-    ts->items--;
-    return ts->stack[ts->items];
+    else if (ts->items <= RAX_STACK_STATIC_ITEMS) {
+        ts->items--;
+        return ts->static_item[ts->items];
+    } else {
+        ts->items--;
+        return ts->heap[ts->items - RAX_STACK_STATIC_ITEMS];
+    }
 }
 
 /* Return the stack item at the top of the stack without actually consuming
  * it. */
 static inline void *raxStackPeek(raxStack *ts) {
     if (ts->items == 0) return NULL;
-    return ts->stack[ts->items-1];
+    else if (ts->items <= RAX_STACK_STATIC_ITEMS) {
+        return ts->static_item[ts->items - 1];
+    } else {
+        return ts->heap[ts->items - RAX_STACK_STATIC_ITEMS - 1];
+    }
 }
 
 /* Free the stack in case we used heap allocation. */
 static inline void raxStackFree(raxStack *ts) {
-    if (ts->stack != ts->static_items) rax_free(ts->stack);
+    if (ts->heap != NULL) rax_free(ts->heap);
+}
+
+/* Return the stack item at index. */
+void *raxStackGet(raxStack *ts, const size_t index) {
+    if (index >= ts->items) {
+      return NULL;
+    } else {
+      if (index < RAX_STACK_STATIC_ITEMS) {
+        return ts->static_item[index];
+      } else {
+        return ts->heap[index - RAX_STACK_STATIC_ITEMS];
+      }
+    }
 }
 
 /* ----------------------------------------------------------------------------
@@ -1581,8 +1617,8 @@ int raxSeek(raxIterator *it, const char *op, unsigned char *ele, size_t len) {
          * the characters found along the way. */
         if (!raxStackPush(&it->stack,it->node)) return 0;
         for (size_t j = 1; j < it->stack.items; j++) {
-            raxNode *parent = it->stack.stack[j-1];
-            raxNode *child = it->stack.stack[j];
+            raxNode *parent = raxStackGet(&it->stack, j-1);
+            raxNode *child = raxStackGet(&it->stack, j);
             if (parent->iscompr) {
                 if (!raxIteratorAddChars(it,parent->data,parent->size))
                     return 0;

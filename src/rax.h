@@ -153,11 +153,11 @@ typedef struct rax {
  * field for space concerns, so we use the auxiliary stack when needed. */
 #define RAX_STACK_STATIC_ITEMS 32
 typedef struct raxStack {
-    void **stack; /* Points to static_items or an heap allocated array. */
+    void **heap; /* Points to static_items or an heap allocated array. */
     size_t items, maxitems; /* Number of items contained and total space. */
     /* Up to RAXSTACK_STACK_ITEMS items we avoid to allocate on the heap
      * and use this static array of pointers instead. */
-    void *static_items[RAX_STACK_STATIC_ITEMS];
+    void *static_item[RAX_STACK_STATIC_ITEMS];
     int oom; /* True if pushing into this stack failed for OOM at some point. */
 } raxStack;
 
@@ -220,6 +220,7 @@ void raxShow(rax *rax);
 uint64_t raxSize(rax *rax);
 unsigned long raxTouch(raxNode *n);
 void raxSetDebugMsg(int onoff);
+void *raxStackGet(raxStack *ts, const size_t index);
 
 /* Internal API. May be used by the node callback in order to access rax nodes
  * in a low level way, so this function is exported as well. */
